@@ -1,0 +1,28 @@
+BOLSA-TALENTOS/
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── main.py
+│   │
+│   ├── app/                    # Paradigma POO (Python)
+│   │   ├── __init__.py
+│   │   ├── modelos.py          # Clases ORM (Persona, Empresa, Oferta)
+│   │   ├── servicios.py        # Lógica de negocio / Matching
+│   │   └── api.py              # Endpoints FastAPI
+│   │
+│   ├── basedatos/              # SQL y conexión
+│   │   ├── __init__.py
+│   │   ├── database.py         # Session + engine
+│   │   └── init.sql            # Script para crear tablas
+│   │
+│   └── prolog/                 # Paradigma lógico
+│       ├── reglas.pl
+│       ├── consultas.pl
+│       └── motor_prolog.py     # Python ↔ Prolog
+│
+├── front/                      # React o Node
+│   ├── package.json
+│   └── src/
+│
+├── docker-compose.yml
+└── README.md

@@ -1,0 +1,10 @@
+body {
+  font-family: sans-serif;
+  background: #070707;
+  margin: 0;
+}
+
+.container {
+  padding: 40px;
+  text-align: center;
+}
