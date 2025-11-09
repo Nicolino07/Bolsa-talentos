@@ -1,0 +1,157 @@
+
+=================================================
+MINI MANUAL – DOCKER – PROYECTO BOLSA DE TALENTOS
+=================================================
+
+1) INICIAR TODOS LOS SERVICIOS
+------------------------------
+docker compose up -d
+
+(-d oculta los logs)
+(Levanta: backend, frontend, base de datos, prolog, pgadmin)
+
+2) VER CONTENEDORES ACTIVOS
+---------------------------
+docker ps
+
+3) VER LOGS DE UN SERVICIO
+--------------------------
+Backend:
+    docker logs -f jobs_backend
+Base de datos:
+    docker logs -f jobs_db
+
+4) DETENER TODO
+---------------
+docker compose down
+
+5) REINICIAR TODO (SIN RECONSTRUIR)
+-----------------------------------
+docker compose down
+docker compose up -d
+
+6) RECONSTRUIR (CUANDO CAMBIAN Dockerfile, requirements o package.json)
+------------------------------------------------------------------------
+docker compose up --build -d
+
+7) ENTRAR DENTRO DE UN CONTENEDOR
+---------------------------------
+Backend (FastAPI, Python):
+    docker exec -it jobs_backend bash
+
+Prolog:
+    docker exec -it jobs_prolog bash
+    luego dentro: swipl
+
+Base de datos (psql):
+    docker exec -it jobs_db bash
+    psql -U postgres -d bolsa_talentos
+
+8) RESETEAR COMPLETAMENTE (BORRA BASE DE DATOS)
+-----------------------------------------------
+docker compose down -v
+docker compose up --build -d
+
+9) ACTUALIZAR CÓDIGO SIN RECONSTRUIR
+------------------------------------
+Si solo cambiaste .py, .js, .html, .css:
+    Backend se autorecarga o:
+        docker restart jobs_backend
+    Front actualiza solo si se usa Vite
+
+
+10) Para iniciar en otra pc 
+-----------------------------------
+
+1️⃣ Entra a la carpeta del proyecto
+
+cd Bolsa-talentos
+
+
+2️⃣ Copia el archivo de variables (si usás .env.example)
+
+cp backend/.env.example backend/.env
+
+
+3️⃣ Instala Docker y Docker Compose (si no los tiene)
+
+4️⃣ Ahora sí: levantar los contenedores
+
+docker compose up --build -d
+
+
+✅ --build solo la primera vez
+✅ -d para modo silencioso
+
+✅ Después de eso ya puede ingresar a:
+Servicio    URL
+Backend (FastAPI)   http://localhost:3000
+Docs Swagger    http://localhost:3000/docs
+Frontend    http://localhost:5173
+pgAdmin http://localhost:5050
+
+LUEGO PARA USAR PgAdmin en la otra pc 
+
+Abre el navegador:
+
+http://localhost:5050
+
+Loguearse:
+
+Email: admin@admin.com
+
+Password: admin1234
+
+Crear Server en pgAdmin:
+
+Name: jobs_db
+Host: db ✅ (no localhost)
+Port: 5432
+User: postgres
+Password: postgres1234
+
+💡 Esto solo configura pgAdmin para conectarse al contenedor. La base ya existe.
+=========================================================================================
+NOTA!! Los datos cargados en una pc no viajan por git, los usuarios creados en la base 
+de datos de una pc solo existen en ella. Localmente
+
+Entonces prolog debe funcionar en tiempo real, para evitar inconsistencia de datos.  
+==========================================================================================
+
+
+✅ ¿Cómo comprobar que todo está funcionando?
+
+📌 Navegador:
+
+Frontend: http://localhost:5173
+
+(o el puerto que pusimos en docker-compose.yml, normalmente 5173 o 3001)
+
+📌 Backend FastAPI Docs:
+
+API: http://localhost:3000
+
+Documentación (Swagger): http://localhost:3000/docs
+
+📌 pgAdmin:
+
+http://localhost:5050
+
+Usa las credenciales que configuraste en el docker-compose.yml (admin@example.com
+ / admin123 por ejemplo)
+
+📌 Prolog:
+Para ver si está vivo: (dentro de la carpeta raiz en la terminal)
+
+docker logs -f jobs_prolog
+
+
+✅ ¿Cómo actualizar el código cuando hagas cambios?
+
+Si cambias...                   |   Qué hacer
+-----------------------------------------------------------------------
+Solo código del frontend        |   docker compose restart jobs_front
+Solo código del backend         |   docker compose restart jobs_backend
+Código Prolog                   |   docker compose restart jobs_prolog
+requirements.txt o Dockerfile   |   docker compose up --build -d
+Biblioteca Node o package.json  |   docker compose up --build -d
