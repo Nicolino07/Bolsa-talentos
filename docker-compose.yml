@@ -1,9 +1,7 @@
-
 services:
-
   db:
     image: postgres:15
-    container_name: jobs_db
+    container_name: bolsa_talentos_db
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -13,35 +11,11 @@ services:
       - "5435:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./backend/baseDatos/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: jobs_pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - db
-
-  prolog:
-    build: ./backend/prolog
-    container_name: jobs_prolog
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./backend/prolog:/app
+      - ./backend/app/baseDatos/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
 
   backend:
     build: ./backend
-    container_name: jobs_backend
-    restart: always
-    depends_on:
-      - db
-      - prolog
+    container_name: bolsa_talentos_backend
     ports:
       - "3000:3000"
     environment:
@@ -49,19 +23,9 @@ services:
       DB_USER: postgres
       DB_PASS: postgres1234
       DB_NAME: bolsa_talentos
-      DB_PORT: 5435
-    volumes:
-      - ./backend:/app
-
-  front:
-    build: ./frontend
-    container_name: jobs_front
+      DB_PORT: 5432
     depends_on:
-      - backend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
+      - db
 
 volumes:
   db_data:

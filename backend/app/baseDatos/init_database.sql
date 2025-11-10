@@ -79,4 +79,3 @@ CREATE INDEX idx_persona_actividad_dni ON persona_actividad(dni);
 CREATE INDEX idx_persona_actividad_actividad ON persona_actividad(id_actividad);
 CREATE INDEX idx_oferta_actividad_oferta ON oferta_actividad(id_oferta);
 CREATE INDEX idx_oferta_actividad_actividad ON oferta_actividad(id_actividad);
-

@@ -1,0 +1,48 @@
+BOLSA-TALENTOS/
+├── docker-compose.yml
+├── README.md
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── main.py
+│   │
+│   └── app/
+│       ├── __init__.py
+│       │
+│       ├── modelos/                   # PARADIGMA POO + ORM
+│       │   ├── __init__.py
+│       │   └── persona.py             # Modelo Persona
+│       │
+│       ├── servicios/                 # PARADIGMA FUNCIONAL
+│       │   ├── __init__.py
+│       │   └── persona_service.py     # Funciones para Persona
+│       │
+│       ├── api/                       # API REST
+│       │   ├── __init__.py
+│       │   └── persona.py             # Endpoints Persona
+│       │
+│       └── baseDatos/                 # SQL (DECLARATIVO)
+│           ├── __init__.py
+│           ├── database.py            # Conexión DB
+│           └── init_database.sql      # Schema completo
+│
+└── frontend/
+|   ├── Dockerfile
+|   ├── package.json
+|   └── src/
+|      └── (pendiente desarrollo)
+|   
+├── docker-compose.yml
+└── README.md
+
+
+1. CLIENTE (Frontend/Postman)
+   ↓ HTTP Request
+2. API REST (FastAPI) - backend/api/persona.py
+   ↓ Llamada a servicio  
+3. SERVICIOS (Funciones) - backend/servicios/persona_service.py
+   ↓ Operaciones ORM
+4. MODELOS (POO + ORM) - backend/modelos/persona.py
+   ↓ Conexión DB
+5. BASE DE DATOS (PostgreSQL) - SQL Declarativo
