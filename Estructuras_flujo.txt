@@ -3,46 +3,36 @@ BOLSA-TALENTOS/
 ├── README.md
 │
 ├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py
-│   │
-│   └── app/
-│       ├── __init__.py
-│       │
-│       ├── modelos/                   # PARADIGMA POO + ORM
-│       │   ├── __init__.py
-│       │   └── persona.py             # Modelo Persona
-│       │
-│       ├── servicios/                 # PARADIGMA FUNCIONAL
-│       │   ├── __init__.py
-│       │   └── persona_service.py     # Funciones para Persona
-│       │
-│       ├── api/                       # API REST
-│       │   ├── __init__.py
-│       │   └── persona.py             # Endpoints Persona
-│       │
-│       └── baseDatos/                 # SQL (DECLARATIVO)
-│           ├── __init__.py
-│           ├── database.py            # Conexión DB
-│           └── init_database.sql      # Schema completo
-│
+|     ├── Dockerfile
+|     ├── requirements.txt
+|     ├── main.py
+|     └── app/
+|        ├── database.py              # Conexión DB única
+|        ├── personas/                # TODO relacionado con Persona
+|        │   ├── __init__.py
+|        │   ├── models.py            # Modelo Persona (POO)
+|        │   └── routes.py            # APIs + Servicios (Funcional)
+|        |
+|        └── empresas/                # TODO relacionado con Empresa
+|            ├── __init__.py
+|            ├── models.py            # Modelo Empresa (POO)
+|            └── routes.py            # APIs + Servicios (Funcional)
 └── frontend/
 |   ├── Dockerfile
 |   ├── package.json
 |   └── src/
-|      └── (pendiente desarrollo)
-|   
+|      ├── main.jsx
+|      ├── App.jsx
+|      ├── App.css
+|      ├── services/
+|      │   └── api.js              # Todas las llamadas API
+|      ├── styles/
+|      │   └── FormStyles.css      # Estilos reutilizables
+|      └── components/
+|            ├── PersonaForm.jsx     # Formulario Persona
+|            ├── EmpresaForm.jsx     # Formulario Empresa
+|            └── ListaPersonas.jsx   # Lista de personas
 ├── docker-compose.yml
 └── README.md
 
 
-1. CLIENTE (Frontend/Postman)
-   ↓ HTTP Request
-2. API REST (FastAPI) - backend/api/persona.py
-   ↓ Llamada a servicio  
-3. SERVICIOS (Funciones) - backend/servicios/persona_service.py
-   ↓ Operaciones ORM
-4. MODELOS (POO + ORM) - backend/modelos/persona.py
-   ↓ Conexión DB
-5. BASE DE DATOS (PostgreSQL) - SQL Declarativo
