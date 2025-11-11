@@ -94,20 +94,29 @@ LUEGO PARA USAR PgAdmin en la otra pc
 
 Abre el navegador:
 
-http://localhost:5050
+Cómo usar pgAdmin:
+1. Acceder:
+URL: http://localhost:5050
 
-Loguearse:
+Email: admin@bolsatalentos.com
 
-Email: admin@admin.com
+Password: admin123
 
-Password: admin1234
+2. Conectar a la base de datos:
+Login → Click derecho "Servers" → "Register" → "Server"
 
-Crear Server en pgAdmin:
+General Tab:
 
-Name: jobs_db
-Host: db ✅ (no localhost)
+Name: Bolsa Talentos DB
+
+Connection Tab:
+
+Host: db (nombre del servicio en docker)
+
 Port: 5432
-User: postgres
+
+Username: postgres
+
 Password: postgres1234
 
 💡 Esto solo configura pgAdmin para conectarse al contenedor. La base ya existe.

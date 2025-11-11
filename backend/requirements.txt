@@ -1,4 +1,5 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+fastapi==0.104.1        # Framework web para construir APIs
+uvicorn==0.24.0         # Servidor ASGI para FastAPI
+sqlalchemy==2.0.23      # ORM para interacción con bases de datos
+psycopg2-binary==2.9.9  # Adaptador PostgreSQL para Python
+pyswip==0.2.10          # Interfaz Prolog-Python

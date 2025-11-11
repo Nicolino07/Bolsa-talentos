@@ -1,4 +1,6 @@
 services:
+
+  # servicio de base de datos PostgreSQL
   db:
     image: postgres:15
     container_name: bolsa_talentos_db
@@ -12,7 +14,28 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/app/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bolsa_talentos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
+  # servicio pgAdmin para la administración de la base de datos
+  pgadmin:  
+    image: dpage/pgadmin4
+    container_name: bolsa_talentos_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bolsatalentos.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # servicio del backend de FastAPI + Prolog
   backend:
     build: ./backend
     container_name: bolsa_talentos_backend
@@ -24,17 +47,21 @@ services:
       DB_PASS: postgres1234
       DB_NAME: bolsa_talentos
       DB_PORT: 5432
+      PROLOG_ENABLED: "true"  # ← Flag para activar Prolog
+      DATABASE_URL: "postgresql://postgres:postgres1234@db:5432/bolsa_talentos"  # ← URL completa
+    volumes:
+      - ./backend/app/prolog:/app/prolog  # ← Montar reglas Prolog
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: on-failure:5  # ← Reintentar si falla
 
-
-      
+  # servicio del frontend de React
   frontend:
     build: ./frontend
     container_name: bolsa_talentos_frontend
     ports:
       - "5173:5173"
-  
     depends_on:
       - backend
 

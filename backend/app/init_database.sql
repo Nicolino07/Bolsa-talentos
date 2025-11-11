@@ -2,9 +2,7 @@
 -- Solo se ejecuta una vez al crear la base de datos
 
 -- Eliminar tablas si existen (en orden correcto por dependencias)
-DROP TABLE IF EXISTS oferta_actividad CASCADE;
 DROP TABLE IF EXISTS oferta_empleo CASCADE;
-DROP TABLE IF EXISTS persona_actividad CASCADE;
 DROP TABLE IF EXISTS empresa CASCADE;
 DROP TABLE IF EXISTS actividad CASCADE;
 DROP TABLE IF EXISTS persona CASCADE;
@@ -50,10 +48,15 @@ CREATE TABLE persona_actividad (
     dni                     INTEGER NOT NULL REFERENCES persona(dni) ON DELETE CASCADE,
     id_actividad            INTEGER NOT NULL REFERENCES actividad(id_actividad) ON DELETE CASCADE,
     nivel_experiencia       VARCHAR(50) CHECK (nivel_experiencia IN ('PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'EXPERTO')),
-    anos_experiencia        INTEGER DEFAULT 0 CHECK (anos_experiencia >= 0),
-    certificado             BOOLEAN DEFAULT FALSE,
-    fecha_actualizacion     TIMESTAMP DEFAULT NOW(),
+    años_experiencia        INTEGER DEFAULT 0 CHECK (años_experiencia >= 0),
     UNIQUE(dni, id_actividad)
+);
+
+CREATE TABLE empresa_actividad (
+    id_empresa INTEGER NOT NULL REFERENCES empresa(id_empresa) ON DELETE CASCADE,
+    id_actividad INTEGER NOT NULL REFERENCES actividad(id_actividad) ON DELETE CASCADE,
+    especializacion VARCHAR(100), -- 'desarrollo', 'consultoria', 'producto'
+    PRIMARY KEY (id_empresa, id_actividad)
 );
 
 CREATE TABLE oferta_empleo (
@@ -66,16 +69,6 @@ CREATE TABLE oferta_empleo (
     activa BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE oferta_actividad (
-    id_oferta               INTEGER NOT NULL REFERENCES oferta_empleo(id_oferta) ON DELETE CASCADE,
-    id_actividad            INTEGER NOT NULL REFERENCES actividad(id_actividad) ON DELETE CASCADE,
-    nivel_requerido         VARCHAR(50) CHECK (nivel_requerido IN ('PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'EXPERTO')),
-    importancia             INTEGER CHECK (importancia BETWEEN 1 AND 5),
-    PRIMARY KEY (id_oferta, id_actividad)
-);
-
 -- Índices para mejorar performance
 CREATE INDEX idx_persona_actividad_dni ON persona_actividad(dni);
 CREATE INDEX idx_persona_actividad_actividad ON persona_actividad(id_actividad);
-CREATE INDEX idx_oferta_actividad_oferta ON oferta_actividad(id_oferta);
-CREATE INDEX idx_oferta_actividad_actividad ON oferta_actividad(id_actividad);
