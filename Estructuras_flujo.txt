@@ -1,6 +1,4 @@
 BOLSA-TALENTOS/
-├── docker-compose.yml
-├── README.md
 │
 ├── backend/
 |     ├── Dockerfile
@@ -14,9 +12,17 @@ BOLSA-TALENTOS/
 |        │   └── routes.py            # APIs + Servicios (Funcional)
 |        |
 |        └── empresas/                # TODO relacionado con Empresa
-|            ├── __init__.py
-|            ├── models.py            # Modelo Empresa (POO)
-|            └── routes.py            # APIs + Servicios (Funcional)
+|        |    ├── __init__.py
+|        |    ├── models.py            # Modelo Empresa (POO)
+|        |    └── routes.py            # APIs + Servicios (Funcional)
+|        |
+|        ├── prolog/                #  Paradigma Lógico
+│        │   ├── motor.py       # Bridge Python↔Prolog
+│        │   ├── reglas.pl      # Reglas de matching
+|        │   └── hechos.pl      # Hechos generados desde DB
+|        └── matching/          # Servicio de matching
+|            └── servicio.py    # Orquesta todo el proceso
+|
 └── frontend/
 |   ├── Dockerfile
 |   ├── package.json
@@ -32,6 +38,7 @@ BOLSA-TALENTOS/
 |            ├── PersonaForm.jsx     # Formulario Persona
 |            ├── EmpresaForm.jsx     # Formulario Empresa
 |            └── ListaPersonas.jsx   # Lista de personas
+|
 ├── docker-compose.yml
 └── README.md
 
