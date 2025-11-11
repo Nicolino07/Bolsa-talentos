@@ -2,8 +2,17 @@ import React, { useState } from 'react'
 import { crearPersona } from '../servicios/Api'
 import '../styles/FormStyles.css'
 
-
+/**
+ * Componente PersonaForm para capturar datos y crear una nueva persona.
+ * 
+ * Usa el hook useState para gestionar el estado del formulario y control
+ * de entrada para los campos.
+ * 
+ * Maneja el envío del formulario llamando a la función crearPersona y muestra
+ * mensajes de éxito o error basados en el resultado.
+ */
 const PersonaForm = () => {
+  // Estado local para los datos del formulario
   const [formData, setFormData] = useState({
     dni: '',
     nombre: '',
@@ -17,9 +26,15 @@ const PersonaForm = () => {
     telefono: ''
   })
 
+  // Estado para mostrar mensajes de éxito/error
   const [mensaje, setMensaje] = useState('')
+  // Estado para indicar el proceso de envío en curso
   const [loading, setLoading] = useState(false)
 
+  /**
+   * Maneja el cambio de valor en cualquier campo del formulario
+   * @param {Event} e Evento de cambio de input
+   */
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -27,22 +42,29 @@ const PersonaForm = () => {
     })
   }
 
+  /**
+   * Maneja el envío del formulario, previene comportamiento por defecto,
+   * convierte dni a número y llama a la API para crear persona.
+   * Controla estados de loading y muestra mensajes correspondientemente.
+   * @param {Event} e Evento de submit del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setMensaje('')
 
     try {
-      // Convertir DNI a número
+      // Convertir DNI a número antes de enviar
       const datosEnviar = {
         ...formData,
         dni: parseInt(formData.dni)
       }
 
+      // Llamar servicio API para crear persona
       const resultado = await crearPersona(datosEnviar)
       setMensaje(`✅ ${resultado.mensaje}`)
-      
-      // Limpiar formulario
+
+      // Limpiar formulario tras éxito
       setFormData({
         dni: '',
         nombre: '',
@@ -63,6 +85,7 @@ const PersonaForm = () => {
     }
   }
 
+  // JSX que representa el formulario con campos controlados y botón de submit
   return (
     <div className="form-container">
       <h2>👤 Agregar Nueva Persona</h2>
@@ -195,6 +218,7 @@ const PersonaForm = () => {
           </div>
         </div>
 
+        {/* Botón de envío con estado de loading */}
         <button 
           type="submit" 
           className="submit-btn primary"
@@ -203,6 +227,7 @@ const PersonaForm = () => {
           {loading ? '⏳ Guardando...' : '💾 Guardar Persona'}
         </button>
 
+        {/* Mensajes de éxito o error basados en el estado */}
         {mensaje && (
           <div className={`mensaje ${mensaje.includes('✅') ? 'success' : 'error'}`}>
             {mensaje}

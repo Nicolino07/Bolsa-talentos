@@ -54,3 +54,15 @@ BOLSA-TALENTOS/
                        │   Motor Prolog   │
                        │   (Razonamiento) │
                        └──────────────────┘
+
+Aca una posible forma de como funciona el sistema
+
+EMPRESA: "Necesitamos desarrollador Python con Django para startup"
+    ↓
+PROLOG: Detecta → [python, django, startup] 
+    ↓
+PROLOG: "Startup implica → flexibilidad, aprendizaje rápido"
+    ↓  
+PROLOG: Busca personas con [python, django] + flexibilidad
+    ↓
+RESULTADO: "Laura: 95% - Tiene Python avanzado y experiencia en startups"

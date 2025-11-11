@@ -1,13 +1,17 @@
--- Script de inicialización de la base de datos 
--- Solo se ejecuta una vez al crear la base de datos
+-- Script de inicialización de la base de datos
+-- Este script se ejecuta una sola vez para crear la estructura inicial de la base de datos
 
--- Eliminar tablas si existen (en orden correcto por dependencias)
+-- Eliminar tablas si existen para evitar conflictos y asegurar creación limpia
+-- El orden de eliminación considera dependencias para evitar errores por claves foráneas
+
 DROP TABLE IF EXISTS oferta_empleo CASCADE;
+DROP TABLE IF EXISTS persona_actividad CASCADE;
+DROP TABLE IF EXISTS empresa_actividad CASCADE;
 DROP TABLE IF EXISTS empresa CASCADE;
 DROP TABLE IF EXISTS actividad CASCADE;
 DROP TABLE IF EXISTS persona CASCADE;
 
--- Crear tablas
+-- Creación de la tabla persona con restricciones y validaciones
 CREATE TABLE persona (
     dni                 INTEGER PRIMARY KEY CHECK (dni > 10000000),
     apellido            VARCHAR(100) NOT NULL,
@@ -18,10 +22,11 @@ CREATE TABLE persona (
     provincia           VARCHAR(100) NOT NULL,
     sexo                VARCHAR(50) NOT NULL,
     mail                VARCHAR(100) UNIQUE NOT NULL,
-    telefono            VARCHAR(30),   -- varchar permite +54-294-1234567
+    telefono            VARCHAR(30),
     activa              BOOLEAN DEFAULT TRUE
 );
 
+-- Creación de la tabla empresa registrando datos de empresas
 CREATE TABLE empresa (
     id_empresa          SERIAL PRIMARY KEY,
     nombre              VARCHAR(100) UNIQUE NOT NULL,
@@ -34,6 +39,7 @@ CREATE TABLE empresa (
     activa              BOOLEAN DEFAULT TRUE
 );
 
+-- Creación de tabla actividad para registrar distintos tipos de actividades o áreas
 CREATE TABLE actividad (
     id_actividad        SERIAL PRIMARY KEY,
     nombre              VARCHAR(100) NOT NULL,
@@ -43,6 +49,7 @@ CREATE TABLE actividad (
     descripcion         TEXT
 );
 
+-- Tabla intermedia persona_actividad relacionando personas con actividades y experiencia
 CREATE TABLE persona_actividad (
     id_relacion             SERIAL PRIMARY KEY,
     dni                     INTEGER NOT NULL REFERENCES persona(dni) ON DELETE CASCADE,
@@ -52,23 +59,24 @@ CREATE TABLE persona_actividad (
     UNIQUE(dni, id_actividad)
 );
 
+-- Tabla intermedia empresa_actividad para especializaciones asignadas a empresas
 CREATE TABLE empresa_actividad (
     id_empresa INTEGER NOT NULL REFERENCES empresa(id_empresa) ON DELETE CASCADE,
     id_actividad INTEGER NOT NULL REFERENCES actividad(id_actividad) ON DELETE CASCADE,
-    especializacion VARCHAR(100), -- 'desarrollo', 'consultoria', 'producto'
+    especializacion VARCHAR(100),
     PRIMARY KEY (id_empresa, id_actividad)
 );
 
+-- Tabla oferta_empleo para registrar ofertas de trabajo relacionadas a empresas
 CREATE TABLE oferta_empleo (
     id_oferta                   SERIAL PRIMARY KEY,
     id_empresa                  INTEGER NOT NULL REFERENCES empresa(id_empresa) ON DELETE CASCADE,
     titulo                      VARCHAR(200) NOT NULL,
     descripcion                 TEXT,
-    tipo_contrato               VARCHAR(50),
     fecha_publicacion           TIMESTAMP DEFAULT NOW(),
     activa BOOLEAN DEFAULT TRUE
 );
 
--- Índices para mejorar performance
+-- Índices para optimizar consultas en la tabla persona_actividad
 CREATE INDEX idx_persona_actividad_dni ON persona_actividad(dni);
 CREATE INDEX idx_persona_actividad_actividad ON persona_actividad(id_actividad);
