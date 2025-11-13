@@ -1,10 +1,259 @@
-body {
-  font-family: sans-serif;
-  background: #070707;
+/* ===== VARIABLES DE COLOR ===== */
+:root {
+  --primary-dark: #455a64;
+  --primary-main: #607d8b;
+  --primary-light: #cfd8dc;
+  --accent-color: #009688;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-icons: #FFFFFF;
+  --divider-color: #BDBDBD;
+  --background-dark: #455a64;
+  --background-white: #FFFFFF;
+}
+
+/* ===== RESET MEJORADO ===== */
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: "Roboto", sans-serif;
+  background-color: var(--background-white);
+  color: var(--text-primary);
+}
+
+/* ===== APP CONTAINER ===== */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background-color: var(--primary-dark);
+  color: var(--text-icons);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+}
+
+.titulo {
+  font-size: 1.8rem;
   margin: 0;
 }
 
-.container {
+.acciones-header {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-header {
+  background-color: var(--accent-color);
+  color: var(--text-icons);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: 500;
+}
+
+.btn-header:hover {
+  background-color: #00796b;
+}
+
+/* ===== MAIN - CORREGIDO ===== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: var(--primary-main);
+  padding: 40px 20px;
+  width: 100%;
+  gap: 40px; /* Espacio entre secciones */
+}
+
+.busqueda {
+  background-color: var(--background-white);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   padding: 40px;
+  width: 95%;
+  max-width: 1200px;
+  min-width: 320px;
   text-align: center;
+}
+
+.subtitulo {
+  color: var(--primary-dark);
+  margin-bottom: 24px;
+  font-size: 1.8rem;
+}
+
+/* ===== FORMULARIO ===== */
+.form-busqueda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: end;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.campo label {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.campo input {
+  padding: 12px;
+  border: 1px solid var(--divider-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+/* Botón que ocupa toda una fila */
+.btn-buscar {
+  grid-column: 1 / -1;
+  background-color: var(--accent-color);
+  color: var(--text-icons);
+  border: none;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.btn-buscar:hover {
+  background-color: #00796b;
+}
+
+/* ===== SECCIÓN INFO CARDS ===== */
+.info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.info-card {
+  background: linear-gradient(135deg, var(--background-dark), var(--background-white));
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--divider-color);
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.info-card h3 {
+  color: var(--primary-dark);
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.info-card p {
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  background-color: var(--primary-dark);
+  color: var(--text-icons);
+  text-align: center;
+  padding: 16px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+/* ===== MEDIA QUERIES PARA RESPONSIVIDAD ===== */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 20px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .titulo {
+    font-size: 1.5rem;
+  }
+  
+  .busqueda {
+    padding: 30px 20px;
+    width: 100%;
+    margin: 0 10px;
+  }
+  
+  .form-busqueda {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .info {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+  
+  .info-card {
+    padding: 25px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 20px 10px;
+    gap: 30px;
+  }
+  
+  .busqueda {
+    padding: 20px 15px;
+  }
+  
+  .subtitulo {
+    font-size: 1.5rem;
+  }
+  
+  .info-card {
+    padding: 20px 15px;
+  }
+  
+  .info-card h3 {
+    font-size: 1.2rem;
+  }
 }
