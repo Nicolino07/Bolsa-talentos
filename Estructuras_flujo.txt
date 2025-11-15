@@ -5,6 +5,13 @@ BOLSA-TALENTOS/
 |     ├── requirements.txt
 |     ├── main.py
 |     └── app/
+|        |
+|        ├── autenticacion/                       # Módulo de autenticación
+|        │    ├── __init__.py
+|        │    ├── models.py              # Modelo Usuario
+|        │    ├── routes.py              # APIs: /registro, /login, /logout
+|        │    └── security.py            # Password hashing, JWT tokens
+|        │      
 |        ├── database.py              # Conexión DB única
 |        ├── personas/                # TODO relacionado con Persona
 |        │   ├── __init__.py
@@ -30,14 +37,22 @@ BOLSA-TALENTOS/
 |      ├── main.jsx
 |      ├── App.jsx
 |      ├── App.css
-|      ├── services/
-|      │   └── api.js              # Todas las llamadas API
+|      ├── servicios/
+|      │   └── Api.js              # Todas las llamadas API
 |      ├── styles/
 |      │   └── FormStyles.css      # Estilos reutilizables
 |      └── components/
-|            ├── PersonaForm.jsx     # Formulario Persona
-|            ├── EmpresaForm.jsx     # Formulario Empresa
-|            └── ListaPersonas.jsx   # Lista de personas
+|           ├── BuscarEmpleo.jsx     # Formulario Persona
+|           ├── BuscarEmpresa.jsx     # Formulario Empresa
+|           ├── CrearUsuarioForm.jsx     
+|           ├── LoginForm.jsx    
+|           ├── CrearOferta.jsx     
+|           ├── PerfilPersona.jsx      <-- Vista principal del perfil
+|           ├── perfil/
+|           │   ├── SidebarPerfil.jsx
+|           │   ├── InfoPersona.jsx
+|           │   ├── HabilidadesPersona.jsx
+|           │   └── HabilidadForm.jsx
 |
 ├── docker-compose.yml
 └── README.md

@@ -79,10 +79,13 @@ function App() {
 
         {/* PERFIL */}
         {vista === "perfil" && usuario && (
-          <PerfilPersona
+          <PerfilPersona 
             usuario={usuario}
-            onLogout={handleLogout}
-          />
+            onLogout={() => {
+              setUsuario(null);
+              setVista("inicio");
+           }}
+         />
         )}
 
       </main>

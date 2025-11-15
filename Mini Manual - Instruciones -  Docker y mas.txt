@@ -5,6 +5,7 @@ MINI MANUAL – DOCKER – PROYECTO BOLSA DE TALENTOS
 
 1) INICIAR TODOS LOS SERVICIOS
 ------------------------------
+docker compose up --build (Primera vez)
 docker compose up -d
 
 (-d oculta los logs)

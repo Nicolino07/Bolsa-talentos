@@ -1,118 +1,64 @@
--- =============================================
--- DATOS DE PRUEBA PARA la base de datos 
--- =============================================
+-- ACTIVIDADES (inspiradas en carreras de la Universidad de Río Negro y áreas variadas)
+INSERT INTO actividad (nombre, area, especialidad, descripcion) VALUES
+('Desarrollador Web', 'Tecnología', 'Frontend/Backend', 'Diseño y programación de sitios web'),
+('Enfermero Profesional', 'Salud', 'Clínica', 'Atención de pacientes en hospitales'),
+('Guía de Turismo', 'Turismo', 'Patagonia', 'Acompañamiento y guiado de grupos turísticos'),
+('Diseñador Gráfico', 'Diseño', 'Branding', 'Diseño de piezas visuales para empresas'),
+('Ingeniero Agrónomo', 'Ciencias Agrarias', 'Cultivos', 'Gestión de producción agrícola'),
+('Músico Profesional', 'Arte', 'Composición', 'Producción musical'),
+('Administración de Empresas', 'Administración', 'Gestión', 'Gestión de recursos y procesos'),
+('Ingeniero en Telecomunicaciones', 'Tecnología', 'Redes', 'Infraestructura y comunicaciones de redes');
 
--- Limpiar datos existentes (OPCIONAL - solo para testing)
--- DELETE FROM oferta_actividad;
--- DELETE FROM persona_actividad;
--- DELETE FROM oferta_empleo;
--- DELETE FROM empresa;
--- DELETE FROM actividad;
--- DELETE FROM persona;
-
--- 1. INSERTAR ACTIVIDADES/HABILIDADES
-INSERT INTO actividad (nombre, area, especialidad, nivel, descripcion) VALUES
--- Lenguajes de Programación
-('Python', 'Programación', 'Backend', 'AVANZADO', 'Lenguaje de programación interpretado'),
-('Java', 'Programación', 'Backend', 'INTERMEDIO', 'Lenguaje de programación orientado a objetos'),
-('JavaScript', 'Programación', 'Frontend', 'AVANZADO', 'Lenguaje para desarrollo web frontend'),
-('SQL', 'Bases de Datos', 'Database', 'INTERMEDIO', 'Lenguaje de consulta para bases de datos'),
-('Docker', 'DevOps', 'Containers', 'PRINCIPIANTE', 'Plataforma de contenedores'),
-('React', 'Frontend', 'Framework', 'AVANZADO', 'Librería para interfaces de usuario'),
-('Spring Boot', 'Backend', 'Framework', 'INTERMEDIO', 'Framework para aplicaciones Java'),
-('Machine Learning', 'Data Science', 'AI', 'PRINCIPIANTE', 'Algoritmos de aprendizaje automático'),
-('Git', 'DevOps', 'Control Versiones', 'INTERMEDIO', 'Sistema de control de versiones'),
-('AWS', 'Cloud', 'Infraestructura', 'PRINCIPIANTE', 'Servicios de cloud computing');
-
--- 2. INSERTAR PERSONAS CON HABILIDADES
+-- PERSONAS
 INSERT INTO persona (dni, apellido, nombre, fecha_nacimiento, direccion, ciudad, provincia, sexo, mail, telefono) VALUES
--- Desarrollador Full Stack
-(30123456, 'Gomez', 'Laura', '1990-05-15', 'Av. Siempre Viva 123', 'Buenos Aires', 'Buenos Aires', 'Femenino', 'laura.gomez@email.com', '1155667788'),
--- Desarrollador Backend
-(30234567, 'Rodriguez', 'Carlos', '1985-08-22', 'Calle Falsa 456', 'Córdoba', 'Córdoba', 'Masculino', 'carlos.rodriguez@email.com', '1155778899'),
--- Data Scientist
-(30345678, 'Lopez', 'Ana', '1992-12-03', 'Av. Libertador 789', 'Mendoza', 'Mendoza', 'Femenino', 'ana.lopez@email.com', '1155889900'),
--- DevOps Engineer
-(30456789, 'Martinez', 'Pedro', '1988-03-18', 'Calle Tech 321', 'Rosario', 'Santa Fe', 'Masculino', 'pedro.martinez@email.com', '1155990011'),
--- Frontend Developer
-(30567890, 'Fernandez', 'Maria', '1995-07-25', 'Av. Digital 654', 'La Plata', 'Buenos Aires', 'Femenino', 'maria.fernandez@email.com', '1155001122');
+(20400123, 'Pérez', 'Martín', '1990-04-12', 'Av. San Martín 455', 'Neuquén', 'Neuquén', 'M', 'martin.perez@example.com', '+54-299-4567890'),
+(27110999, 'González', 'Laura', '1985-11-02', 'Rivadavia 102', 'General Roca', 'Río Negro', 'F', 'laura.gonzalez@example.com', '+54-298-4556677'),
+(35222888, 'Sánchez', 'Julián', '1995-06-18', 'Belgrano 842', 'San Carlos de Bariloche', 'Río Negro', 'M', 'julian.sanchez@example.com', '+54-294-4422100'),
+(30123999, 'Fernández', 'Carolina', '1988-09-25', 'Mitre 900', 'Mendoza', 'Mendoza', 'F', 'carolina.fernandez@example.com', '+54-261-4321100'),
+(25999888, 'Ruiz', 'Sofía', '1992-01-08', 'Sarmiento 120', 'Córdoba', 'Córdoba', 'F', 'sofia.ruiz@example.com', '+54-351-4357789'),
+(27977444, 'Martínez', 'Hernán', '1980-03-14', 'Av. Pellegrini 500', 'Rosario', 'Santa Fe', 'M', 'hernan.martinez@example.com', '+54-341-4225600'),
+(33900888, 'Castro', 'Elena', '1993-07-30', 'Perito Moreno 20', 'Ushuaia', 'Tierra del Fuego', 'F', 'elena.castro@example.com', '+54-2901-5551122'),
+(31222555, 'Reyes', 'Tomás', '1991-10-12', 'Av. Belgrano 142', 'Salta', 'Salta', 'M', 'tomas.reyes@example.com', '+54-387-4258899'),
+(32666777, 'Morales', 'Valeria', '1996-12-02', 'Paunero 80', 'Trelew', 'Chubut', 'F', 'valeria.morales@example.com', '+54-280-4311188'),
+(28333999, 'López', 'Cristian', '1987-05-09', 'Av. Alem 3050', 'Tucumán', 'Tucumán', 'M', 'cristian.lopez@example.com', '+54-381-4451200');
 
--- Habilidades de Laura (Full Stack)
-INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, anos_experiencia, certificado) VALUES
-(30123456, 1, 'AVANZADO', 5, true),   -- Python
-(30123456, 3, 'AVANZADO', 4, true),   -- JavaScript
-(30123456, 6, 'AVANZADO', 3, true),   -- React
-(30123456, 4, 'INTERMEDIO', 4, false), -- SQL
-(30123456, 5, 'PRINCIPIANTE', 1, false); -- Docker
-
--- Habilidades de Carlos (Backend)
-INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, anos_experiencia, certificado) VALUES
-(30234567, 2, 'INTERMEDIO', 6, true),   -- Java
-(30234567, 7, 'INTERMEDIO', 3, false),  -- Spring Boot
-(30234567, 4, 'INTERMEDIO', 5, true),   -- SQL
-(30234567, 9, 'INTERMEDIO', 4, false);  -- Git
-
--- Habilidades de Ana (Data Science)
-INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, anos_experiencia, certificado) VALUES
-(30345678, 1, 'AVANZADO', 4, true),    -- Python
-(30345678, 8, 'PRINCIPIANTE', 2, true), -- Machine Learning
-(30345678, 4, 'INTERMEDIO', 3, false);  -- SQL
-
--- Habilidades de Pedro (DevOps)
-INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, anos_experiencia, certificado) VALUES
-(30456789, 5, 'AVANZADO', 3, true),    -- Docker
-(30456789, 9, 'INTERMEDIO', 4, true),  -- Git
-(30456789, 10, 'PRINCIPIANTE', 1, false); -- AWS
-
--- Habilidades de Maria (Frontend)
-INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, anos_experiencia, certificado) VALUES
-(30567890, 3, 'AVANZADO', 4, true),    -- JavaScript
-(30567890, 6, 'AVANZADO', 3, true),    -- React
-(30567890, 9, 'INTERMEDIO', 2, false); -- Git
-
--- 3. INSERTAR EMPRESAS
+-- EMPRESAS
 INSERT INTO empresa (nombre, direccion, ciudad, provincia, mail, telefono) VALUES
-('Tech Solutions SA', 'Av. Tech 123', 'Buenos Aires', 'Buenos Aires', 'hr@techsolutions.com', '1144556677'),
-('Data Analytics Corp', 'Calle Data 456', 'Córdoba', 'Córdoba', 'info@dataanalytics.com', '1144667788'),
-('DevOps Experts', 'Av. Cloud 789', 'Mendoza', 'Mendoza', 'careers@devopsexperts.com', '1144778899');
+('PatagoniaTech', 'Ruta 22 km 4', 'Cipolletti', 'Río Negro', 'contacto@patagoniatech.com', '+54-299-4998778'),
+('SaludSur', 'Roca 150', 'Neuquén', 'Neuquén', 'info@saludsur.com', '+54-299-4432211'),
+('Turismo Andino SRL', 'Moreno 355', 'Bariloche', 'Río Negro', 'reservas@turismoandino.com', '+54-294-4422333'),
+('Diseña Patagonia', 'Belgrano 222', 'Rawson', 'Chubut', 'hola@disenapatagonia.com', '+54-280-4411122'),
+('AgroMendoza SA', 'Mitre 890', 'Mendoza', 'Mendoza', 'info@agromendoza.com', '+54-261-4228899'),
+('Telecom Norte', 'San Martín 120', 'Salta', 'Salta', 'rrhh@telecomnorte.com', '+54-387-4321900');
 
--- 4. INSERTAR OFERTAS DE EMPLEO
+-- PERSONA_ACTIVIDAD (vínculo persona ↔ profesión)
+INSERT INTO persona_actividad (dni, id_actividad, nivel_experiencia, años_experiencia) VALUES
+(20400123, 1, 'AVANZADO', 6),   -- Martín - Desarrollador Web
+(27110999, 2, 'INTERMEDIO', 4), -- Laura - Enfermería
+(35222888, 3, 'INTERMEDIO', 3), -- Julián - Turismo
+(30123999, 4, 'AVANZADO', 8),   -- Carolina - Diseño gráfico
+(25999888, 7, 'INTERMEDIO', 5), -- Sofía - Administración
+(27977444, 8, 'AVANZADO', 7),   -- Hernán - Telecomunicaciones
+(33900888, 6, 'AVANZADO', 4),   -- Elena - Música
+(31222555, 5, 'EXPERTO', 10),   -- Tomás - Agrónomo
+(32666777, 2, 'INTERMEDIO', 3),
+(28333999, 1, 'INTERMEDIO', 2);
+
+-- EMPRESA ↔ ACTIVIDAD (a qué se dedica cada empresa)
+INSERT INTO empresa_actividad (id_empresa, id_actividad, especializacion) VALUES
+(1, 1, 'Desarrollo Web'),
+(1, 8, 'Redes y comunicaciones'),
+(2, 2, 'Atención Médica'),
+(3, 3, 'Guiado turístico'),
+(4, 4, 'Diseño visual'),
+(5, 5, 'Cultivos y producción'),
+(6, 8, 'Instalaciones de redes');
+
+-- OFERTAS DE TRABAJO
 INSERT INTO oferta_empleo (id_empresa, titulo, descripcion, tipo_contrato) VALUES
--- Oferta 1: Full Stack Developer
-(1, 'Desarrollador Full Stack Senior', 'Buscamos desarrollador full stack con experiencia en Python y React para proyecto innovador', 'Full-time'),
--- Oferta 2: Data Scientist
-(2, 'Científico de Datos', 'Posición para científico de datos con conocimientos en machine learning y Python', 'Full-time'),
--- Oferta 3: DevOps Engineer
-(3, 'Ingeniero DevOps', 'Buscamos ingeniero DevOps para gestionar nuestra infraestructura cloud', 'Full-time'),
--- Oferta 4: Java Backend Developer
-(1, 'Desarrollador Java Backend', 'Desarrollador backend con experiencia en Spring Boot y microservicios', 'Part-time');
-
--- 5. INSERTAR REQUISITOS PARA LAS OFERTAS
--- Oferta 1: Full Stack Developer
-INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido, importancia) VALUES
-(1, 1, 'AVANZADO', 5),  -- Python (Muy importante)
-(1, 3, 'INTERMEDIO', 4), -- JavaScript (Importante)
-(1, 6, 'INTERMEDIO', 4), -- React (Importante)
-(1, 4, 'INTERMEDIO', 3); -- SQL (Deseable)
-
--- Oferta 2: Data Scientist
-INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido, importancia) VALUES
-(2, 1, 'AVANZADO', 5),  -- Python (Muy importante)
-(2, 8, 'PRINCIPIANTE', 4), -- Machine Learning (Importante)
-(2, 4, 'INTERMEDIO', 3); -- SQL (Deseable)
-
--- Oferta 3: DevOps Engineer
-INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido, importancia) VALUES
-(3, 5, 'AVANZADO', 5),  -- Docker (Muy importante)
-(3, 9, 'INTERMEDIO', 4), -- Git (Importante)
-(3, 10, 'PRINCIPIANTE', 3); -- AWS (Deseable)
-
--- Oferta 4: Java Backend Developer
-INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido, importancia) VALUES
-(4, 2, 'INTERMEDIO', 5),  -- Java (Muy importante)
-(4, 7, 'INTERMEDIO', 4),  -- Spring Boot (Importante)
-(4, 4, 'INTERMEDIO', 3);  -- SQL (Deseable)
-
--- =============================================
--- DATOS LISTOS PARA PROLOG MATCHING
--- =============================================
+(1, 'Desarrollador Web React', 'Desarrollo de apps web con React y Node', 'Tiempo completo'),
+(2, 'Enfermero Clínico', 'Guardias rotativas. Experiencia hospitalaria', 'Tiempo completo'),
+(3, 'Guía Turístico Patagonia', 'Trabajo de campo, turismo aventura', 'Temporario'),
+(4, 'Diseñador Gráfico Digital', 'Diseño de redes y branding', 'Freelance'),
+(5, 'Ingeniero Agrónomo Senior', 'Gestión de fincas y producción agrícola', 'Tiempo completo'),
+(6, 'Técnico en Telecomunicaciones', 'Instalación y mantenimiento de redes', 'Contrato por proyecto');

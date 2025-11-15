@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS empresa_actividad CASCADE;
 DROP TABLE IF EXISTS empresa CASCADE;
 DROP TABLE IF EXISTS actividad CASCADE;
 DROP TABLE IF EXISTS persona CASCADE;
+DROP TABLE IF EXISTS oferta_actividad CASCADE;
 
 -- Creación de la tabla persona con restricciones y validaciones
 CREATE TABLE persona (
@@ -21,7 +22,7 @@ CREATE TABLE persona (
     ciudad              VARCHAR(100) NOT NULL,
     provincia           VARCHAR(100) NOT NULL,
     sexo                VARCHAR(50) NOT NULL,
-    mail                VARCHAR(100) UNIQUE NOT NULL,
+    email                VARCHAR(100) UNIQUE NOT NULL,
     telefono            VARCHAR(30),
     activa              BOOLEAN DEFAULT TRUE
 );
@@ -33,7 +34,7 @@ CREATE TABLE empresa (
     direccion           VARCHAR(100) NOT NULL,
     ciudad              VARCHAR(100) NOT NULL,
     provincia           VARCHAR(100) NOT NULL,
-    mail                VARCHAR(100) NOT NULL,
+    email                VARCHAR(100) NOT NULL,
     telefono            VARCHAR(30),
     fecha_registro      TIMESTAMP DEFAULT NOW(),
     activa              BOOLEAN DEFAULT TRUE
@@ -45,7 +46,6 @@ CREATE TABLE actividad (
     nombre              VARCHAR(100) NOT NULL,
     area                VARCHAR(100),
     especialidad        VARCHAR(100),
-    nivel               VARCHAR(50),
     descripcion         TEXT
 );
 
@@ -67,14 +67,44 @@ CREATE TABLE empresa_actividad (
     PRIMARY KEY (id_empresa, id_actividad)
 );
 
--- Tabla oferta_empleo para registrar ofertas de trabajo relacionadas a empresas
+-- Tabla oferta_empleo para registrar ofertas de trabajo relacionadas a empresas o personas
 CREATE TABLE oferta_empleo (
     id_oferta                   SERIAL PRIMARY KEY,
-    id_empresa                  INTEGER NOT NULL REFERENCES empresa(id_empresa) ON DELETE CASCADE,
+    id_empresa                  INTEGER REFERENCES empresa(id_empresa) ON DELETE CASCADE,
+    persona_dni                 INTEGER REFERENCES persona(dni) ON DELETE CASCADE,
     titulo                      VARCHAR(200) NOT NULL,
     descripcion                 TEXT,
     fecha_publicacion           TIMESTAMP DEFAULT NOW(),
     activa BOOLEAN DEFAULT TRUE
+);
+
+-- Tabla intermedia oferta_actividad relacionando ofertas de empleo con actividades requeridas
+-- Es una tabla de muchos a muchos entre oferta_empleo y actividad
+CREATE TABLE oferta_actividad (
+    id_oferta                       INTEGER NOT NULL REFERENCES oferta_empleo(id_oferta) ON DELETE CASCADE,
+    id_actividad                    INTEGER NOT NULL REFERENCES actividad(id_actividad) ON DELETE CASCADE,
+    nivel_requerido                 VARCHAR(50) CHECK (nivel_requerido IN ('PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'EXPERTO')),
+    PRIMARY KEY (id_oferta, id_actividad)
+);
+
+-- Tabla usuario para gestionar autenticación y roles de usuarios (personas o empresas)
+-- Seguridad tradicional con hash y sal
+CREATE TABLE usuario (
+    id_usuario          SERIAL PRIMARY KEY,
+    dni                 INTEGER UNIQUE REFERENCES persona(dni) ON DELETE CASCADE,
+    id_empresa          INTEGER UNIQUE REFERENCES empresa(id_empresa) ON DELETE CASCADE,
+    email                VARCHAR(100) UNIQUE NOT NULL,
+    password_hash       VARCHAR(255) NOT NULL,  -- Bcrypt
+    salt                VARCHAR(100) NOT NULL,           -- Sal para el hash
+    rol                 VARCHAR(20) CHECK (rol IN ('PERSONA', 'EMPRESA', 'ADMIN')),
+    fecha_registro      TIMESTAMP DEFAULT NOW(),
+    ultimo_login        TIMESTAMP,
+    activo              BOOLEAN DEFAULT TRUE,
+    intentos_login      INTEGER DEFAULT 0,
+    bloqueado_hasta     TIMESTAMP,
+    -- Restricción: solo puede ser persona o empresa
+    CHECK ((dni IS NOT NULL AND id_empresa IS NULL) OR 
+           (dni IS NULL AND id_empresa IS NOT NULL))
 );
 
 -- Índices para optimizar consultas en la tabla persona_actividad
