@@ -6,7 +6,9 @@ from app.empresas.models import Empresa
 from app.autenticacion.models import Usuario 
 from app.personas.routes import router as personas_router
 from app.empresas.routes import router as empresas_router
-from app.autenticacion.routes import router as auth_router 
+from app.autenticacion.routes import router as auth_router
+
+from app.matching.routes import router as matching_router   # matching
 
 # Crear las tablas en la base de datos si no existen aún
 Persona.metadata.create_all(bind=engine)
@@ -29,6 +31,8 @@ app.add_middleware(
 app.include_router(personas_router, prefix="/api")
 app.include_router(empresas_router, prefix="/api")
 app.include_router(auth_router)
+
+app.include_router(matching_router, prefix="/api/matching", tags=["Matching"]) #matching
 
 @app.get("/")
 def root():
