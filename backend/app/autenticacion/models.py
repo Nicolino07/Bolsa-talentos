@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
+from typing import Optional, Dict, Any
 
 # Pydantic models para request/response
 from pydantic import BaseModel, validator
@@ -66,6 +67,7 @@ class Token(BaseModel):
     rol: str
     dni: Optional[int] = None
     id_empresa: Optional[int] = None
+    usuario: Optional[Dict[str, Any]] = None 
 
 class PersonaRegistro(BaseModel):
     dni: int

@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import os
@@ -7,18 +7,40 @@ from typing import Optional
 # Configuración
 SECRET_KEY = os.getenv("SECRET_KEY", "tu-clave-secreta-universidad")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
-
-# Contexto para hashing de passwords
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica si la contraseña plain coincide con el hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Asegurar que la contraseña esté en bytes
+        if isinstance(plain_password, str):
+            plain_password = plain_password.encode('utf-8')
+        
+        # Asegurar que el hash esté en bytes
+        if isinstance(hashed_password, str):
+            hashed_password = hashed_password.encode('utf-8')
+        
+        return bcrypt.checkpw(plain_password, hashed_password)
+    except Exception as e:
+        print(f"Error en verify_password: {e}")
+        return False
 
 def get_password_hash(password: str) -> str:
     """Genera hash de la contraseña"""
-    return pwd_context.hash(password)
+    try:
+        # Asegurar que la contraseña esté en bytes
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        
+        # Generar salt y hash
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password, salt)
+        
+        # Devolver como string
+        return hashed.decode('utf-8')
+    except Exception as e:
+        print(f"Error en get_password_hash: {e}")
+        raise e
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Crea token JWT"""
@@ -46,7 +68,7 @@ def get_current_user(token: str):
     if payload:
         return {
             "id_usuario": payload.get("id_usuario"),
-            "mail": payload.get("mail"),
+            "email": payload.get("email"),
             "rol": payload.get("rol"),
             "dni": payload.get("dni"),
             "id_empresa": payload.get("id_empresa")

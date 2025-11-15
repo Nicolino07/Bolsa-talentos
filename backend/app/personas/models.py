@@ -29,7 +29,7 @@ class Persona(Base):
     ciudad = Column(String(100), nullable=False)
     provincia = Column(String(100), nullable=False)
     sexo = Column(String(50), nullable=False)
-    mail = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False)
     telefono = Column(String(30))
     activa = Column(Boolean, default=True)
 

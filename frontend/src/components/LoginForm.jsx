@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "../styles/FormStyles.css";
 import { login } from "../servicios/Api"; 
 
-
 function LoginForm({ onVolver, onLoginSuccess }) {
   const [email, setMail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,19 +15,27 @@ function LoginForm({ onVolver, onLoginSuccess }) {
 
     try {
       const data = await login(email, password);
+      console.log('🔍 RESPUESTA COMPLETA DEL BACKEND:', data);
 
-      // Login exitoso
+      // Construir objeto usuario con todos los datos disponibles
       const usuario = {
         token: data.access_token,
         rol: data.rol,
         dni: data.dni,
         id_empresa: data.id_empresa,
-        email: mail
+        email: data.usuario?.email || email, // Usar email del backend si está disponible
+        // Incluir todos los datos del usuario si vienen del backend
+        ...(data.usuario || {}),
+        // Asegurar que tenemos id_usuario
+        id_usuario: data.usuario?.id_usuario || data.id_usuario
       };
+
+      console.log('✅ USUARIO FINAL PARA EL STATE:', usuario);
       
       // Guardar token en localStorage
       localStorage.setItem("token", data.access_token);
       
+      // Pasar el usuario completo al callback
       onLoginSuccess(usuario);
       
     } catch (error) {
@@ -65,7 +72,7 @@ function LoginForm({ onVolver, onLoginSuccess }) {
           <label>Correo electrónico</label>
           <input
             type="email"
-            value={mail}
+            value={email}
             onChange={(e) => setMail(e.target.value)}
             placeholder="ejemplo@correo.com"
             required

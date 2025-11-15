@@ -26,7 +26,7 @@ class Empresa(Base):
     direccion = Column(String(100), nullable=False)
     ciudad = Column(String(100), nullable=False)
     provincia = Column(String(100), nullable=False)
-    mail = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False)
     telefono = Column(String(30))
     fecha_registro = Column(DateTime, default=func.now())
     activa = Column(Boolean, default=True)

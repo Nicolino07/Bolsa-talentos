@@ -1,21 +1,62 @@
-const API_BASE = 'http://localhost:3000'; 
+
+const API_BASE_URL = 'http://localhost:3000';
 
 /* ==================== AUTENTICACIÓN ==================== */
 
 export const login = async (email, password) => {
-  const response = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  try {
+    console.log('🔐 Enviando credenciales:', { email, password });
+    
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || 'Error en el login');
+    const data = await response.json();
+    console.log('📨 Respuesta del backend:', data);
+    
+    if (!response.ok) {
+      throw new Error(data.detail || 'Error en login');
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error en login:', error);
+    throw error;
   }
-
-  return await response.json();
 };
+
+export const getUsuarioCompleto = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/usuario/completo`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.detail || 'Error al obtener usuario');
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error al obtener usuario:', error);
+    throw error;
+  }
+};
+
 
 // mejora el manejo de errores
 export const registroEmpresa = async (empresaData) => {
