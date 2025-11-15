@@ -21,9 +21,16 @@ RUN apt-get update && \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Copiamos todo el backend y Prolog
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]
+# Copiamos el script de inicio y le damos permisos
+COPY startScript.sh /app/startScript.sh
+RUN chmod +x /app/startScript.sh
 
-CMD swipl -s /app/server.pl -g start_server
+# Arranca ambos servicios
+CMD ["/app/startScript.sh"]
+
+
+
 
