@@ -1,8 +1,8 @@
 #!/bin/bash
 # Evitar que el script termine
+# Arranca FastAPI en segundo plano
+uvicorn main:app --host 0.0.0.0 --port 3000 &
 
-# 1️⃣ Arranca Prolog en segundo plano
-swipl -s /app/server.pl -g start_server &
+# Arranca Prolog en primer plano (manteniéndose vivo)
+swipl -s /app/prolog/server.pl -g start_server
 
-# 2️⃣ Arranca FastAPI
-uvicorn main:app --host 0.0.0.0 --port 3000

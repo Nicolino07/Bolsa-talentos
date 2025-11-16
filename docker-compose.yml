@@ -41,6 +41,7 @@ services:
     container_name: bolsa_talentos_backend
     ports:
       - "3000:3000"  # Puerto de la API
+      - "5001:5001"   # Puerto del servidor Prolog
     environment:
       DB_HOST: db  # Host de la base de datos a conectar
       DB_USER: postgres

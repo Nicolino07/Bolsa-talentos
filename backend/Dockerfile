@@ -17,20 +17,19 @@ RUN apt-get update && \
         build-essential && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Python deps
+# Configurar directorio de trabajo
 WORKDIR /app
+
+# Instalar dependencias de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Copiamos todo el backend y Prolog
+
+# Copiar todo el backend (incluyendo Prolog)
 COPY . .
 
-# Copiamos el script de inicio y le damos permisos
+# Copiar script de inicio y darle permisos
 COPY startScript.sh /app/startScript.sh
 RUN chmod +x /app/startScript.sh
 
-# Arranca ambos servicios
+# Ejecutar script al iniciar contenedor
 CMD ["/app/startScript.sh"]
-
-
-
-
