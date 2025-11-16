@@ -94,7 +94,16 @@ function CrearUsuarioForm({ onVolver, onRegistroSuccess }) {
       
       const resultado = await registroEmpresa(datosEnvio)
       alert('✅ Empresa registrada exitosamente!')
-      onRegistroSuccess(resultado)
+
+      if (typeof onRegistroSuccess === 'function') {
+        onRegistroSuccess(resultado)
+      } else {
+        console.log('onRegistroSuccess no está disponible')
+        // Opcional: llamar onVolver si no hay onRegistroSuccess
+        if (typeof onVolver === 'function') {
+          onVolver()
+        }
+      }
       
     } catch (error) {
       console.log('❌ EMPRESA - Error:', error)
@@ -138,7 +147,16 @@ function CrearUsuarioForm({ onVolver, onRegistroSuccess }) {
       
       const resultado = await registroPersona(datosEnvio)
       alert('✅ Persona registrada exitosamente!')
-      onRegistroSuccess(resultado)
+      
+      if (typeof onRegistroSuccess === 'function') {
+        onRegistroSuccess(resultado)
+      } else {
+        console.log('onRegistroSuccess no está disponible')
+        // Opcional: llamar onVolver si no hay onRegistroSuccess
+        if (typeof onVolver === 'function') {
+          onVolver()
+        }
+      }
       
     } catch (error) {
       console.log('❌ PERSONA - Error:', error)

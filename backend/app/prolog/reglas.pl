@@ -1,47 +1,98 @@
-% rutas basicas y reglas (usá la versión que prefieras)
-% ... suponemos que existe score_total(DNI, IdOferta, BestScore).
+% reglas.pl - Versión básica para pruebas
+% Sin recursión infinita, solo reglas simples
 
+:- encoding(utf8).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                       REGLAS BÁSICAS DE CONFIGURACIÓN                 %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Valores numéricos para niveles de habilidad
 nivel_valor('PRINCIPIANTE', 1).
 nivel_valor('INTERMEDIO', 2).
 nivel_valor('AVANZADO', 3).
 nivel_valor('EXPERTO', 4).
 
-cumple_nivel(NP, NR) :-
-    nivel_valor(NP, Vp), nivel_valor(NR, Vr), Vp >= Vr.
+% Datos de demostración para pruebas
+persona_demo(30567890, 'Ana García', 5).
+persona_demo(28765432, 'Carlos López', 3).
+persona_demo(33445566, 'María Rodríguez', 4).
 
-calcular_score_habilidad(NivelPersona, Anos, _NivelReq, Score) :-
-    nivel_valor(NivelPersona, Vp),
-    Base is Vp * 20,
-    ExpBonus is min(Anos * 2, 30),
-    Score is Base + ExpBonus.
+tiene_habilidad_demo(30567890, 'Python', 'AVANZADO', 4).
+tiene_habilidad_demo(30567890, 'SQL', 'INTERMEDIO', 3).
+tiene_habilidad_demo(28765432, 'JavaScript', 'AVANZADO', 5).
+tiene_habilidad_demo(33445566, 'Python', 'INTERMEDIO', 3).
 
-calcular_score_ubicacion(CP, PP, CE, PE, 100) :- CP = CE.
-calcular_score_ubicacion(_, PP, _, PE, 80) :- PP = PE.
-calcular_score_ubicacion(_, _, _, _, 50).
+oferta_demo(1, 'Desarrollador Python', 3).
+oferta_demo(2, 'Desarrollador FullStack', 4).
 
-% match_habilidad_exacta usando oferta_actividad y persona_actividad
-match_habilidad_exacta(DNI, IdOferta, IdActividad, Score) :-
-    persona_actividad(DNI, IdActividad, NivelPersona, Anos),
-    oferta_actividad(IdOferta, IdActividad, NivelReq),
-    cumple_nivel(NivelPersona, NivelReq),
-    calcular_score_habilidad(NivelPersona, Anos, NivelReq, Score).
+requiere_habilidad_demo(1, 'Python', 'INTERMEDIO').
+requiere_habilidad_demo(2, 'JavaScript', 'AVANZADO').
 
-% match_multi_habilidad: suma scores de todas las actividades requeridas por la oferta
-match_multi_habilidad(DNI, IdOferta, Total) :-
-    findall(S, (
-        oferta_actividad(IdOferta, IdAct, NivelReq),
-        persona_actividad(DNI, IdAct, NivelPersona, Anos),
-        cumple_nivel(NivelPersona, NivelReq),
-        calcular_score_habilidad(NivelPersona, Anos, NivelReq, S)
-    ), Scores),
-    (Scores = [] -> Total = 0 ; sum_list(Scores, Total)).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                       REGLAS SIMPLES DE MATCHING                      %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% score_total: combina multi-habilidades y ubicación (ej: 80% habilidades, 20% ubicación)
-score_total(DNI, IdOferta, TotalScore) :-
-    match_multi_habilidad(DNI, IdOferta, Sskills),
-    persona(DNI, CiudadP, ProvP),
-    oferta_empleo(IdOferta, IdEmpresa, _, _, _, _, _),
-    empresa(IdEmpresa, _, CiudadE, ProvE, _, _, _, _),
-    calcular_score_ubicacion(CiudadP, ProvP, CiudadE, ProvE, Sloc0),
-    Sloc is Sloc0 * 0.2,
-    TotalScore is Sskills * 0.8 + Sloc.
+% Regla simple: persona tiene la experiencia mínima para la oferta
+puede_aplicar(DNI, OfertaID) :-
+    persona_demo(DNI, _, ExpPersona),
+    oferta_demo(OfertaID, _, ExpRequerida),
+    ExpPersona >= ExpRequerida.
+
+% Regla simple: persona tiene habilidades requeridas
+tiene_habilidades_requeridas(DNI, OfertaID) :-
+    requiere_habilidad_demo(OfertaID, HabilidadReq, _),
+    tiene_habilidad_demo(DNI, HabilidadReq, _, _).
+
+% Matching básico: recomendar si puede aplicar y tiene habilidades
+recomendacion_basica(DNI, OfertaID) :-
+    puede_aplicar(DNI, OfertaID),
+    tiene_habilidades_requeridas(DNI, OfertaID).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                       REGLAS DE BÚSQUEDA SIMPLES                     %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Buscar personas por habilidad
+buscar_personas_habilidad(Habilidad, DNI, Nombre, Nivel) :-
+    tiene_habilidad_demo(DNI, Habilidad, Nivel, _),
+    persona_demo(DNI, Nombre, _).
+
+% Buscar ofertas por habilidad requerida
+buscar_ofertas_habilidad(Habilidad, OfertaID, Titulo) :-
+    requiere_habilidad_demo(OfertaID, Habilidad, _),
+    oferta_demo(OfertaID, Titulo, _).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                       REGLAS DE COMPATIBILIDAD SIMPLE                %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Compatibilidad simple basada en nivel
+compatibilidad_nivel(NivelPersona, NivelRequerido, Puntaje) :-
+    nivel_valor(NivelPersona, ValPersona),
+    nivel_valor(NivelRequerido, ValRequerido),
+    (ValPersona >= ValRequerido -> Puntaje is 100 ; Puntaje is 50).
+
+% Matching con puntaje
+matching_con_puntaje(DNI, OfertaID, Puntaje) :-
+    persona_demo(DNI, _, ExpP),
+    oferta_demo(OfertaID, _, ExpR),
+    ExpP >= ExpR,
+    findall(PuntajeH,
+        (requiere_habilidad_demo(OfertaID, Habilidad, NivelReq),
+         tiene_habilidad_demo(DNI, Habilidad, NivelPers, _),
+         compatibilidad_nivel(NivelPers, NivelReq, PuntajeH)),
+        Puntajes),
+    length(Puntajes, Cant),
+    (Cant > 0 -> Puntaje is 60 + (Cant * 10) ; Puntaje is 0).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                            MENSAJE DE INICIO                          %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- write('🎯 Sistema de Matching BÁSICO cargado!'), nl.
+:- write('📚 Reglas disponibles:'), nl.
+:- write('   - recomendacion_basica/2'), nl.
+:- write('   - buscar_personas_habilidad/4'), nl.
+:- write('   - buscar_ofertas_habilidad/3'), nl.
+:- write('   - matching_con_puntaje/3'), nl.
