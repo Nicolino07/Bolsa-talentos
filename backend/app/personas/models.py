@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean
-from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Persona(Base):
@@ -33,8 +32,6 @@ class Persona(Base):
     telefono = Column(String(30))
     activa = Column(Boolean, default=True)
 
-    # Solo mantener relaciones que existen
-    actividades = relationship("PersonaActividad", back_populates="persona")
 
     def __repr__(self):
         """
