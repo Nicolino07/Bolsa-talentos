@@ -46,56 +46,97 @@ class MotorProlog:
                 except:
                     pass
     
+    
+            
     def generar_hechos_desde_db(self):
-        """Genera hechos Prolog desde PostgreSQL"""
+        """Genera hechos Prolog desde la base de datos - VERSIÓN CORREGIDA"""
         if not self.db_session:
             return
         
         try:
-            from app.personas.models import Persona, PersonaActividad
-            from app.actividades.models import Actividad
+            from app.personas.models import Persona
+            from app.actividades.models import Actividad, PersonaActividad
             from app.ofertas.models import OfertaEmpleo, OfertaActividad
             from app.empresas.models import Empresa
             
             hechos = []
             
-            # Personas
+            # Limpiar hechos anteriores
+            try:
+                list(self.prolog.query("retractall(persona(_, _, _))"))
+                list(self.prolog.query("retractall(persona_info(_, _, _, _))"))
+                list(self.prolog.query("retractall(tiene_habilidad(_, _, _, _))"))
+                list(self.prolog.query("retractall(oferta(_, _, _, _, _))"))
+                list(self.prolog.query("retractall(requiere_habilidad(_, _, _))"))
+            except:
+                pass
+            
+            # Obtener todas las personas
             personas = self.db_session.query(Persona).all()
-            for p in personas:
-                exp_total = sum(pa.años_experiencia for pa in p.actividades) or 1
-                hechos.append(f"persona({p.dni}, '{p.nombre} {p.apellido}', {exp_total})")
-                hechos.append(f"persona_info({p.dni}, '{p.nombre} {p.apellido}', '{p.ciudad}', '{p.email}')")
             
-            # Habilidades de personas
-            for pa in self.db_session.query(PersonaActividad).join(Actividad).all():
-                hechos.append(f"tiene_habilidad({pa.dni}, '{pa.actividad.nombre}', '{pa.nivel_experiencia}', {pa.años_experiencia})")
+            # Para cada persona, calcular experiencia y habilidades
+            for persona in personas:
+                # Obtener actividades de esta persona con JOIN
+                actividades_persona = self.db_session.query(PersonaActividad, Actividad)\
+                    .join(Actividad, PersonaActividad.id_actividad == Actividad.id_actividad)\
+                    .filter(PersonaActividad.dni == persona.dni)\
+                    .all()
+                
+                # Calcular experiencia total
+                exp_total = 0
+                for pa, actividad in actividades_persona:
+                    exp_total += pa.años_experiencia or 0
+                
+                if exp_total == 0:
+                    exp_total = 1
+                
+                # Agregar hecho de persona
+                hechos.append(f"persona({persona.dni}, '{persona.nombre} {persona.apellido}', {exp_total})")
+                hechos.append(f"persona_info({persona.dni}, '{persona.nombre} {persona.apellido}', '{persona.ciudad}', '{persona.email}')")
+                
+                # Agregar habilidades de la persona
+                for pa, actividad in actividades_persona:
+                    nivel = pa.nivel_experiencia or 'PRINCIPIANTE'
+                    años = pa.años_experiencia or 0
+                    # CORRECTO: usar 'actividad.nombre' del join
+                    hechos.append(f"tiene_habilidad({persona.dni}, '{actividad.nombre}', '{nivel}', {años})")
             
-            # Ofertas y empresas
-            for oferta in self.db_session.query(OfertaEmpleo).all():
+            # Ofertas de empleo
+            ofertas = self.db_session.query(OfertaEmpleo).filter(OfertaEmpleo.activa == True).all()
+            for oferta in ofertas:
                 empresa_nombre = "Empresa"
                 if oferta.id_empresa:
-                    emp = self.db_session.query(Empresa).get(oferta.id_empresa)
-                    empresa_nombre = emp.nombre if emp else "Empresa"
+                    empresa = self.db_session.query(Empresa).filter(Empresa.id_empresa == oferta.id_empresa).first()
+                    if empresa:
+                        empresa_nombre = empresa.nombre
                 
-                exp_req = 2  # Podría calcularse de OfertaActividad
+                exp_req = 2  # Valor por defecto
                 hechos.append(f"oferta({oferta.id_oferta}, '{oferta.titulo}', '{oferta.descripcion}', {exp_req}, '{empresa_nombre}')")
+                
+                # Requisitos de la oferta
+                requisitos = self.db_session.query(OfertaActividad, Actividad)\
+                    .join(Actividad, OfertaActividad.id_actividad == Actividad.id_actividad)\
+                    .filter(OfertaActividad.id_oferta == oferta.id_oferta)\
+                    .all()
+                
+                for oa, actividad in requisitos:
+                    nivel = oa.nivel_requerido or 'INTERMEDIO'
+                    hechos.append(f"requiere_habilidad({oferta.id_oferta}, '{actividad.nombre}', '{nivel}')")
             
-            # Requisitos de ofertas
-            for oa in self.db_session.query(OfertaActividad).join(Actividad).all():
-                hechos.append(f"requiere_habilidad({oa.id_oferta}, '{oa.actividad.nombre}', '{oa.nivel_requerido}')")
-            
-            # Cargar hechos
+            # Cargar hechos en Prolog
             for hecho in hechos:
                 try:
                     self.prolog.assertz(hecho)
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Hecho no cargado: {hecho}")
             
-            logger.info(f"✅ {len(hechos)} hechos cargados desde DB")
-            
+            logger.info(f"✅ {len(hechos)} hechos cargados en Prolog desde BD")
+        
         except Exception as e:
             logger.error(f"❌ Error generando hechos: {e}")
-    
+            import traceback
+            traceback.print_exc()
+            
     def consultar(self, consulta: str) -> List[Dict[str, Any]]:
         """Ejecuta consulta Prolog"""
         try:
@@ -116,3 +157,16 @@ class MotorProlog:
     
     def buscar_ofertas_habilidad(self, habilidad: str):
         return self.consultar(f"buscar_ofertas_habilidad('{habilidad}', OfertaID, Titulo, Empresa, NivelReq)")
+    
+    def buscar_personas_con_habilidad(self, habilidad: str):
+        """Busca personas que tengan una habilidad específica"""
+        try:
+            # Generar hechos actualizados
+            self.generar_hechos_desde_db()
+            
+            # Consultar Prolog
+            consulta = f"buscar_personas_habilidad('{habilidad}', DNI, Nombre, Nivel, Años, Ciudad)"
+            return self.consultar(consulta)
+        except Exception as e:
+            logger.error(f"❌ Error buscando personas con habilidad {habilidad}: {e}")
+            return []

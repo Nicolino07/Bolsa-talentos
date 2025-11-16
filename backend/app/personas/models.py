@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean
-from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Persona(Base):
@@ -19,8 +18,8 @@ class Persona(Base):
         telefono (String): Teléfono de contacto, opcional.
         activa (Boolean): Estado activo/inactivo, valor por defecto True.
     """
+
     __tablename__ = "persona"
-    
     dni = Column(Integer, primary_key=True)
     apellido = Column(String(100), nullable=False)
     nombre = Column(String(100), nullable=False)
@@ -32,12 +31,3 @@ class Persona(Base):
     email = Column(String(100), nullable=False)
     telefono = Column(String(30))
     activa = Column(Boolean, default=True)
-
-    # Solo mantener relaciones que existen
-    actividades = relationship("PersonaActividad", back_populates="persona")
-
-    def __repr__(self):
-        """
-        Representación en string de la instancia de Persona para depuración.
-        """
-        return f"Persona({self.dni}: {self.nombre} {self.apellido})"

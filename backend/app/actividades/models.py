@@ -3,17 +3,14 @@ from app.database import Base
 
 class Actividad(Base):
     __tablename__ = "actividad"
-    
     id_actividad = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(100), nullable=False)
     area = Column(String(100))
     especialidad = Column(String(100))
     descripcion = Column(Text)
-    
 
 class PersonaActividad(Base):
     __tablename__ = "persona_actividad"
-    
     id_relacion = Column(Integer, primary_key=True, index=True)
     dni = Column(Integer, ForeignKey('persona.dni'), nullable=False)
     id_actividad = Column(Integer, ForeignKey('actividad.id_actividad'), nullable=False)
