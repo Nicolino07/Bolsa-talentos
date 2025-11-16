@@ -33,14 +33,11 @@ class Persona(Base):
     telefono = Column(String(30))
     activa = Column(Boolean, default=True)
 
-    # Relación con Usuario
-    usuario = relationship("Usuario", back_populates="persona", uselist=False)
+    # Solo mantener relaciones que existen
+    actividades = relationship("PersonaActividad", back_populates="persona")
 
     def __repr__(self):
         """
         Representación en string de la instancia de Persona para depuración.
         """
         return f"Persona({self.dni}: {self.nombre} {self.apellido})"
-
-
-   

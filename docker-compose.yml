@@ -1,61 +1,59 @@
 services:
-
   # Servicio de base de datos PostgreSQL
   db:
-    image: postgres:15  # Imagen oficial de PostgreSQL versión 15
-    container_name: bolsa_talentos_db  # Nombre del contenedor
-    restart: always  # Reinicia siempre en caso de fallo
+    image: postgres:15
+    container_name: bolsa_talentos_db
+    restart: always
     environment:
-      POSTGRES_USER: postgres  # Usuario por defecto
-      POSTGRES_PASSWORD: postgres1234  # Contraseña del usuario
-      POSTGRES_DB: bolsa_talentos  # Nombre de la base de datos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres1234
+      POSTGRES_DB: bolsa_talentos
     ports:
-      - "5435:5432"  # Mapea puerto 5435 local al 5432 del contenedor
+      - "5435:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data  # Volumen persistente para datos
-      - ./backend/app/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql  # Script de inicialización
+      - db_data:/var/lib/postgresql/data
+      - ./backend/app/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d bolsa_talentos"]  # Comando para verificar estado de la DB
-      interval: 5s  # Cada 5 segundos
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bolsa_talentos"]
+      interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
 
-  # Servicio pgAdmin para administración visual de la base de datos
+  # Servicio pgAdmin
   pgadmin:  
-    image: dpage/pgadmin4  # Imagen oficial de pgAdmin4
+    image: dpage/pgadmin4
     container_name: bolsa_talentos_pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@bolsatalentos.com  # Email para login
-      PGADMIN_DEFAULT_PASSWORD: admin123  # Contraseña para acceso
+      PGADMIN_DEFAULT_EMAIL: admin@bolsatalentos.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
-      - "5050:80"  # Mapea el puerto 5050 local al puerto 80 del contenedor
+      - "5050:80"
     depends_on:
       db:
-        condition: service_healthy  # Espera a que el servicio DB esté listo
+        condition: service_healthy
 
-  # Servicio backend FastAPI + Prolog
+  # Servicio backend FastAPI + Prolog - CORREGIDO
   backend:
-    build: ./backend  # Directorio para construir la imagen del backend
+    build: ./backend
     container_name: bolsa_talentos_backend
     ports:
-      - "3000:3000"  # Puerto de la API
-      - "5001:5001"   # Puerto del servidor Prolog
+      - "3000:3000"
     environment:
-      DB_HOST: db  # Host de la base de datos a conectar
+      DB_HOST: db
       DB_USER: postgres
       DB_PASS: postgres1234
       DB_NAME: bolsa_talentos
       DB_PORT: 5432
-      PROLOG_ENABLED: "true"  # Flag para activar funcionalidades Prolog
+      PROLOG_ENABLED: "true"
       DATABASE_URL: "postgresql://postgres:postgres1234@db:5432/bolsa_talentos"
     volumes:
-      - ./backend/app/prolog:/app/prolog  # Monta reglas Prolog
-    depends_on:
+      - ./backend:/app
+    depends_on:  # ← FORMA CORRECTA
       db:
-        condition: service_healthy  # Espera a que la base esté lista
-    restart: on-failure:5  # Reintenta hasta 5 veces si falla
+        condition: service_healthy
+    restart: unless-stopped
 
   # Servicio frontend React
   frontend:
@@ -64,7 +62,7 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - backend  # Espera backend disponible
+      - backend
 
 volumes:
-  db_data:  # Volumen persistente para datos de la DB
+  db_data:

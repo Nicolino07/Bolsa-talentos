@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.orm import relationship
+
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -31,8 +31,6 @@ class Empresa(Base):
     fecha_registro = Column(DateTime, default=func.now())
     activa = Column(Boolean, default=True)
     
-     # Relación con Usuario
-    usuario = relationship("Usuario", back_populates="empresa", uselist=False)
 
     def __repr__(self):
         """
