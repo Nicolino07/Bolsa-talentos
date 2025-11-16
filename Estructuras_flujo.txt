@@ -26,9 +26,11 @@ BOLSA-TALENTOS/
 |        ├── prolog/                #  Paradigma Lógico
 │        │   ├── motor.py       # Bridge Python↔Prolog
 │        │   ├── reglas.pl      # Reglas de matching
-|        │   └── hechos.pl      # Hechos generados desde DB
+|        │   ├── hechos.pl      # Hechos generados desde DB
+│        │   └── server.pl
 |        └── matching/          # Servicio de matching
-|            └── servicio.py    # Orquesta todo el proceso
+|            ├── servicio.py    # Orquesta todo el proceso
+|            └── routes.py
 |
 └── frontend/
 |   ├── Dockerfile

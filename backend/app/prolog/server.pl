@@ -21,5 +21,3 @@ start_server :-
     http_server(http_dispatch, [port(5001), ip('0.0.0.0')]),
     % PREDICADO BLOQUEANTE: Espera indefinidamente.
     thread_get_message(stop). % Esto mantiene vivo el proceso de Prolog.
-
-
