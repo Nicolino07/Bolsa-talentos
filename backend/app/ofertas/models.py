@@ -2,6 +2,7 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.sql import func
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 class OfertaEmpleo(Base):
     __tablename__ = "oferta_empleo"
@@ -29,7 +30,10 @@ class OfertaActividad(Base):
     id_oferta = Column(Integer, ForeignKey('oferta_empleo.id_oferta'), primary_key=True)
     id_actividad = Column(Integer, ForeignKey('actividad.id_actividad'), primary_key=True)
     nivel_requerido = Column(String(50))
-    
+
+    actividad = relationship("Actividad")      # <-- ESTA FALTABA
+    oferta = relationship("OfertaEmpleo")      # <-- ESTA TAMBIÉN FALTABA
+
     # Validación del nivel requerido
     __table_args__ = (
         CheckConstraint(
