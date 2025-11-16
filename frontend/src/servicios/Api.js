@@ -61,7 +61,7 @@ export const getUsuarioCompleto = async (token) => {
 // mejora el manejo de errores
 export const registroEmpresa = async (empresaData) => {
   try {
-    const response = await fetch(`${API_BASE}/auth/registro/empresa`, {
+    const response = await fetch(`${API_BASE_URL}/auth/registro/empresa`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(empresaData),
@@ -93,7 +93,7 @@ export const registroEmpresa = async (empresaData) => {
 
 export const registroPersona = async (personaData) => {
   try {
-    const response = await fetch(`${API_BASE}/auth/registro/persona`, {
+    const response = await fetch(`${API_BASE_URL}/auth/registro/persona`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(personaData),
@@ -123,7 +123,7 @@ export const registroPersona = async (personaData) => {
 };
 
 export const getPerfilUsuario = async (token) => {
-  const response = await fetch(`${API_BASE}/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -140,7 +140,7 @@ export const getPerfilUsuario = async (token) => {
 /* ==================== PERSONAS ==================== */
 
 export const obtenerPersona = async (dni, token) => {
-  const response = await fetch(`${API_BASE}/api/personas/${dni}`, {
+  const response = await fetch(`${API_BASE_URL}/api/personas/${dni}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -152,7 +152,7 @@ export const obtenerPersona = async (dni, token) => {
 };
 
 export const listarPersonas = async (token) => {
-  const response = await fetch(`${API_BASE}/api/personas/`, {
+  const response = await fetch(`${API_BASE_URL}/api/personas/`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -166,7 +166,7 @@ export const listarPersonas = async (token) => {
 /* ==================== EMPRESAS ==================== */
 
 export const obtenerEmpresa = async (id_empresa, token) => {
-  const response = await fetch(`${API_BASE}/api/empresas/${id_empresa}`, {
+  const response = await fetch(`${API_BASE_URL}/api/empresas/${id_empresa}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -178,7 +178,7 @@ export const obtenerEmpresa = async (id_empresa, token) => {
 };
 
 export const listarEmpresas = async (token) => {
-  const response = await fetch(`${API_BASE}/api/empresas/`, {
+  const response = await fetch(`${API_BASE_URL}/api/empresas/`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -192,7 +192,7 @@ export const listarEmpresas = async (token) => {
 /* ==================== OFERTAS ==================== */
 
 export const crearOferta = async (ofertaData, token) => {
-  const response = await fetch(`${API_BASE}/api/ofertas/`, {
+  const response = await fetch(`${API_BASE_URL}/api/ofertas/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -210,7 +210,7 @@ export const crearOferta = async (ofertaData, token) => {
 };
 
 export const listarOfertas = async (token) => {
-  const response = await fetch(`${API_BASE}/api/ofertas/`, {
+  const response = await fetch(`${API_BASE_URL}/api/ofertas/`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -224,7 +224,7 @@ export const listarOfertas = async (token) => {
 /* ==================== ACTIVIDADES ==================== */
 
 export const listarActividades = async (token) => {
-  const response = await fetch(`${API_BASE}/api/actividades/`, {
+  const response = await fetch(`${API_BASE_URL}/api/actividades/`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
