@@ -18,7 +18,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Configurar directorio de trabajo
-WORKDIR /app
+WORKDIR /backend
 
 # Instalar dependencias de Python
 COPY requirements.txt .
@@ -28,8 +28,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Copiar script de inicio y darle permisos
-COPY startScript.sh /app/startScript.sh
-RUN chmod +x /app/startScript.sh
+COPY startScript.sh .
+
+# Instala dos2unix
+RUN apt-get update && apt-get install -y dos2unix
+# Convierte el formato de línea
+RUN dos2unix startScript.sh
+
+RUN chmod +x startScript.sh
 
 # Ejecutar script al iniciar contenedor
-CMD ["/app/startScript.sh"]
+CMD ["./startScript.sh"]
