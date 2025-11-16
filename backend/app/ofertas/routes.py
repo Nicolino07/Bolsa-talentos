@@ -35,7 +35,7 @@ class OfertaBase(BaseModel):
 class OfertaCreate(OfertaBase):
     id_empresa: Optional[int] = None
     persona_dni: Optional[int] = None
-    actividades: List[OfertaActividadCreate] = []
+    
 
 class OfertaResponse(OfertaBase):
     id_oferta: int
@@ -50,11 +50,7 @@ class OfertaResponse(OfertaBase):
 # Endpoints
 @router.post("/", response_model=OfertaResponse)
 async def crear_oferta(oferta: OfertaCreate, db: Session = Depends(get_db)):
-    """
-    Crear una nueva oferta de empleo con sus actividades
-    """
     try:
-        # Validaciones
         if not oferta.id_empresa and not oferta.persona_dni:
             raise HTTPException(
                 status_code=400, 
@@ -70,21 +66,7 @@ async def crear_oferta(oferta: OfertaCreate, db: Session = Depends(get_db)):
             persona = db.query(Persona).filter(Persona.dni == oferta.persona_dni).first()
             if not persona:
                 raise HTTPException(status_code=404, detail="Persona no encontrada")
-        
-        # Validar niveles requeridos y actividades
-        niveles_permitidos = ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'EXPERTO']
-        for actividad in oferta.actividades:
-            if actividad.nivel_requerido not in niveles_permitidos:
-                raise HTTPException(
-                    status_code=400, 
-                    detail=f"Nivel '{actividad.nivel_requerido}' no válido. Use: {', '.join(niveles_permitidos)}"
-                )
-            # Verificar que la actividad existe
-            actividad_db = db.query(Actividad).filter(Actividad.id_actividad == actividad.id_actividad).first()
-            if not actividad_db:
-                raise HTTPException(status_code=404, detail=f"Actividad con ID {actividad.id_actividad} no encontrada")
-        
-        # Crear la oferta
+
         nueva_oferta = OfertaEmpleo(
             id_empresa=oferta.id_empresa,
             persona_dni=oferta.persona_dni,
@@ -92,28 +74,12 @@ async def crear_oferta(oferta: OfertaCreate, db: Session = Depends(get_db)):
             descripcion=oferta.descripcion,
             activa=oferta.activa
         )
-        
+
         db.add(nueva_oferta)
-        db.flush()  # Para obtener el ID sin hacer commit
-        
-        # Crear las actividades relacionadas
-        for actividad in oferta.actividades:
-            nueva_actividad = OfertaActividad(
-                id_oferta=nueva_oferta.id_oferta,
-                id_actividad=actividad.id_actividad,
-                nivel_requerido=actividad.nivel_requerido
-            )
-            db.add(nueva_actividad)
-        
         db.commit()
         db.refresh(nueva_oferta)
-        
-        # Cargar actividades para la respuesta
-        actividades_response = db.query(OfertaActividad).filter(
-            OfertaActividad.id_oferta == nueva_oferta.id_oferta
-        ).all()
-        
-        response_data = OfertaResponse(
+
+        return OfertaResponse(
             id_oferta=nueva_oferta.id_oferta,
             id_empresa=nueva_oferta.id_empresa,
             persona_dni=nueva_oferta.persona_dni,
@@ -121,10 +87,8 @@ async def crear_oferta(oferta: OfertaCreate, db: Session = Depends(get_db)):
             descripcion=nueva_oferta.descripcion,
             activa=nueva_oferta.activa,
             fecha_publicacion=nueva_oferta.fecha_publicacion,
-            actividades=actividades_response
+            actividades=[]      # ← YA NO SE PROCESAN AQUÍ
         )
-        
-        return response_data
         
     except HTTPException:
         db.rollback()
@@ -132,6 +96,7 @@ async def crear_oferta(oferta: OfertaCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al crear oferta: {str(e)}")
+
 
 @router.get("/", response_model=List[OfertaResponse])
 async def listar_ofertas(
