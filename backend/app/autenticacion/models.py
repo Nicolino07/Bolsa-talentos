@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.database import Base
 from typing import Optional, Dict, Any
 
@@ -47,6 +48,8 @@ class Usuario(Base):
     intentos_login = Column(Integer, default=0)
     bloqueado_hasta = Column(DateTime)
     
+    persona = relationship("Persona", back_populates="usuario")
+    empresa = relationship("Empresa", back_populates="usuario")
     
     def __repr__(self):
         return f"Usuario({self.id_usuario}: {self.email})"
