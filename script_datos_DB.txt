@@ -10,7 +10,7 @@ INSERT INTO actividad (nombre, area, especialidad, descripcion) VALUES
 ('Ingeniero en Telecomunicaciones', 'Tecnología', 'Redes', 'Infraestructura y comunicaciones de redes');
 
 -- PERSONAS
-INSERT INTO persona (dni, apellido, nombre, fecha_nacimiento, direccion, ciudad, provincia, sexo, mail, telefono) VALUES
+INSERT INTO persona (dni, apellido, nombre, fecha_nacimiento, direccion, ciudad, provincia, sexo, email, telefono) VALUES
 (20400123, 'Pérez', 'Martín', '1990-04-12', 'Av. San Martín 455', 'Neuquén', 'Neuquén', 'M', 'martin.perez@example.com', '+54-299-4567890'),
 (27110999, 'González', 'Laura', '1985-11-02', 'Rivadavia 102', 'General Roca', 'Río Negro', 'F', 'laura.gonzalez@example.com', '+54-298-4556677'),
 (35222888, 'Sánchez', 'Julián', '1995-06-18', 'Belgrano 842', 'San Carlos de Bariloche', 'Río Negro', 'M', 'julian.sanchez@example.com', '+54-294-4422100'),
@@ -23,7 +23,7 @@ INSERT INTO persona (dni, apellido, nombre, fecha_nacimiento, direccion, ciudad,
 (28333999, 'López', 'Cristian', '1987-05-09', 'Av. Alem 3050', 'Tucumán', 'Tucumán', 'M', 'cristian.lopez@example.com', '+54-381-4451200');
 
 -- EMPRESAS
-INSERT INTO empresa (nombre, direccion, ciudad, provincia, mail, telefono) VALUES
+INSERT INTO empresa (nombre, direccion, ciudad, provincia, email, telefono) VALUES
 ('PatagoniaTech', 'Ruta 22 km 4', 'Cipolletti', 'Río Negro', 'contacto@patagoniatech.com', '+54-299-4998778'),
 ('SaludSur', 'Roca 150', 'Neuquén', 'Neuquén', 'info@saludsur.com', '+54-299-4432211'),
 ('Turismo Andino SRL', 'Moreno 355', 'Bariloche', 'Río Negro', 'reservas@turismoandino.com', '+54-294-4422333'),
@@ -55,10 +55,49 @@ INSERT INTO empresa_actividad (id_empresa, id_actividad, especializacion) VALUES
 (6, 8, 'Instalaciones de redes');
 
 -- OFERTAS DE TRABAJO
-INSERT INTO oferta_empleo (id_empresa, titulo, descripcion, tipo_contrato) VALUES
-(1, 'Desarrollador Web React', 'Desarrollo de apps web con React y Node', 'Tiempo completo'),
-(2, 'Enfermero Clínico', 'Guardias rotativas. Experiencia hospitalaria', 'Tiempo completo'),
-(3, 'Guía Turístico Patagonia', 'Trabajo de campo, turismo aventura', 'Temporario'),
-(4, 'Diseñador Gráfico Digital', 'Diseño de redes y branding', 'Freelance'),
-(5, 'Ingeniero Agrónomo Senior', 'Gestión de fincas y producción agrícola', 'Tiempo completo'),
-(6, 'Técnico en Telecomunicaciones', 'Instalación y mantenimiento de redes', 'Contrato por proyecto');
+INSERT INTO oferta_empleo (id_empresa, titulo, descripcion) VALUES
+(1, 'Desarrollador Web React', 'Desarrollo de apps web con React y Node'),
+(2, 'Enfermero Clínico', 'Guardias rotativas. Experiencia hospitalaria'),
+(3, 'Guía Turístico Patagonia', 'Trabajo de campo, turismo aventura'),
+(4, 'Diseñador Gráfico Digital', 'Diseño de redes y branding'),
+(5, 'Ingeniero Agrónomo Senior', 'Gestión de fincas y producción agrícola'),
+(6, 'Técnico en Telecomunicaciones', 'Instalación y mantenimiento de redes');
+
+
+
+
+----------------------------------------------------------------------------------
+
+insert para la tabla oferta_actividad
+
+-- Oferta 1: Desarrollador Web React (Tecnología - necesita múltiples habilidades)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(1, 1, 'AVANZADO'),  -- Desarrollador Web
+(1, 8, 'INTERMEDIO'); -- Ingeniero en Telecomunicaciones (para redes)
+
+-- Oferta 2: Enfermero Clínico (Salud)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(2, 2, 'INTERMEDIO'), -- Enfermero Profesional
+(2, 7, 'PRINCIPIANTE'); -- Administración (para gestión de pacientes)
+
+-- Oferta 3: Guía Turístico Patagonia (Turismo + habilidades adicionales)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(3, 3, 'AVANZADO'),   -- Guía de Turismo
+(3, 4, 'PRINCIPIANTE'), -- Diseño Gráfico (para material promocional)
+(3, 7, 'INTERMEDIO');  -- Administración (para gestión de grupos)
+
+-- Oferta 4: Diseñador Gráfico Digital (Diseño + tecnología)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(4, 4, 'AVANZADO'),   -- Diseñador Gráfico
+(4, 1, 'PRINCIPIANTE'); -- Desarrollador Web (para web básico)
+
+-- Oferta 5: Ingeniero Agrónomo Senior (Agronomía + gestión)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(5, 5, 'EXPERTO'),    -- Ingeniero Agrónomo
+(5, 7, 'AVANZADO');   -- Administración (gestión de fincas)
+
+-- Oferta 6: Técnico en Telecomunicaciones (Telecom + otras habilidades)
+INSERT INTO oferta_actividad (id_oferta, id_actividad, nivel_requerido) VALUES 
+(6, 8, 'AVANZADO'),   -- Ingeniero en Telecomunicaciones
+(6, 1, 'PRINCIPIANTE'), -- Desarrollador Web (para scripts)
+(6, 7, 'INTERMEDIO');  -- Administración (gestión de proyectos)

@@ -2,8 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-# Importar modelos
+# Importar base de datos
 from app.database import engine, get_db
+
+# Importar modelos
 from app.personas.models import Persona
 from app.empresas.models import Empresa
 from app.autenticacion.models import Usuario
@@ -18,7 +20,10 @@ from app.actividades.routes import router as actividades_router
 from app.ofertas.routes import router as ofertas_router
 from app.matching.routes import router as matching_router
 
-# Crear las tablas en la base de datos si no existen aún
+
+# -------------------------------------------------------------------------
+# Crear tablas automáticamente si no existen
+# -------------------------------------------------------------------------
 Persona.metadata.create_all(bind=engine)
 Empresa.metadata.create_all(bind=engine)
 Usuario.metadata.create_all(bind=engine)
@@ -26,28 +31,42 @@ OfertaEmpleo.metadata.create_all(bind=engine)
 OfertaActividad.metadata.create_all(bind=engine)
 Actividad.metadata.create_all(bind=engine)
 
-# Instancia principal de la aplicación FastAPI
-app = FastAPI(title="Bolsa de Talentos", version="1.0.0")
-
-# ✅ CONFIGURACIÓN CORS CORREGIDA
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # ✅ URL específica de tu frontend
-    allow_credentials=True,
-    allow_methods=["*"],  # ✅ Permitir todos los métodos
-    allow_headers=["*"],  # ✅ Permitir todos los headers
+# -------------------------------------------------------------------------
+# FASTAPI APP
+# -------------------------------------------------------------------------
+app = FastAPI(
+    title="Bolsa de Talentos",
+    version="1.0.0"
 )
 
-# Incluir los routers con prefijo común para organizar las rutas de la API
+# -------------------------------------------------------------------------
+# CORS
+# -------------------------------------------------------------------------
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# -------------------------------------------------------------------------
+# RUTAS PRINCIPALES
+# -------------------------------------------------------------------------
 app.include_router(personas_router, prefix="/api")
 app.include_router(empresas_router, prefix="/api")
 app.include_router(actividades_router, prefix="/api")
 app.include_router(ofertas_router, prefix="/api")
 app.include_router(auth_router)
 
-# INCLUIR MATCHING CON PREFIJO CONSISTENTE
+# Matching con prefijo estándar
 app.include_router(matching_router, prefix="/api/matching", tags=["Matching"])
 
+# -------------------------------------------------------------------------
+# RUTAS BÁSICAS
+# -------------------------------------------------------------------------
 @app.get("/")
 def root():
     return {"message": "✅ Bolsa de Talentos API - Multiparadigma"}
@@ -56,53 +75,45 @@ def root():
 def health():
     return {"status": "ok", "database": "connected"}
 
-# Endpoint adicional para probar CORS
 @app.get("/test-cors")
 def test_cors():
-    return {"message": "✅ CORS funcionando", "cors": "enabled"}
+    return {"message": "✅ CORS funcionando"}
 
-# Endpoint para crear ofertas
+# -------------------------------------------------------------------------
+# CREAR OFERTA
+# -------------------------------------------------------------------------
 @app.post("/api/ofertas/")
-def crear_oferta(oferta_data: dict, db: Session = Depends(get_db)):
+def crear_oferta_main(oferta_data: dict, db: Session = Depends(get_db)):
     try:
-        print("📥 Recibiendo datos de oferta:", oferta_data)
-        
         nueva_oferta = OfertaEmpleo(
-            id_empresa=oferta_data.get('id_empresa'),
-            titulo=oferta_data.get('titulo'),
-            descripcion=oferta_data.get('descripcion')
+            id_empresa=oferta_data.get("id_empresa"),
+            titulo=oferta_data.get("titulo"),
+            descripcion=oferta_data.get("descripcion"),
         )
         db.add(nueva_oferta)
         db.commit()
         db.refresh(nueva_oferta)
-        
-        print("✅ Oferta creada:", nueva_oferta.id_oferta)
         return nueva_oferta
-        
+
     except Exception as e:
         db.rollback()
-        print("❌ Error creando oferta:", str(e))
-        raise HTTPException(status_code=500, detail=f"Error al crear oferta: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint para agregar actividades a ofertas
+# -------------------------------------------------------------------------
+# AGREGAR ACTIVIDAD A OFERTA
+# -------------------------------------------------------------------------
 @app.post("/api/ofertas/{id_oferta}/actividades/")
 def agregar_actividad_oferta(id_oferta: int, actividad_data: dict, db: Session = Depends(get_db)):
     try:
-        print(f"📥 Agregando actividad a oferta {id_oferta}:", actividad_data)
-        
-        nueva_actividad_oferta = OfertaActividad(
+        nueva_actividad = OfertaActividad(
             id_oferta=id_oferta,
-            id_actividad=actividad_data.get('id_actividad'),
-            nivel_requerido=actividad_data.get('nivel_requerido')
+            id_actividad=actividad_data.get("id_actividad"),
+            nivel_requerido=actividad_data.get("nivel_requerido"),
         )
-        db.add(nueva_actividad_oferta)
+        db.add(nueva_actividad)
         db.commit()
-        db.refresh(nueva_actividad_oferta)
-        
-        print("✅ Actividad agregada a oferta")
-        return {"message": "Actividad agregada a la oferta"}
-        
+        return {"message": "Actividad agregada correctamente"}
+
     except Exception as e:
         db.rollback()
-        print("❌ Error agregando actividad:", str(e))
-        raise HTTPException(status_code=500, detail=f"Error al agregar actividad: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

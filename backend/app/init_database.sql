@@ -89,7 +89,7 @@ CREATE TABLE oferta_empleo (
     titulo                      VARCHAR(200) NOT NULL,
     descripcion                 TEXT,
     fecha_publicacion           TIMESTAMP DEFAULT NOW(),
-    activa BOOLEAN DEFAULT TRUE
+    activa                      BOOLEAN DEFAULT TRUE
 );
 
 -- Tabla intermedia oferta_actividad relacionando ofertas de empleo con actividades requeridas

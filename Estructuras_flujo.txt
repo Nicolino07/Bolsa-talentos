@@ -36,6 +36,7 @@ BOLSA-TALENTOS/
 │       │   ├── reglas.pl      # Reglas de matching
 |       │   └── hechos.pl      # Hechos generados desde DB
 |       └── matching/          # Servicio de matching
+|           ├── routes.py
 |           └── servicio.py    # Orquesta todo el proceso
 |
 └── frontend/
