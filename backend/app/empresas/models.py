@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -30,7 +30,12 @@ class Empresa(Base):
     telefono = Column(String(30))
     fecha_registro = Column(DateTime, default=func.now())
     activa = Column(Boolean, default=True)
-    
+
+    # TAL VEZ ESTO NO HACE FALTA O LO ROMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+    #ofertas = relationship("OfertaEmpleo", back_populates="empresa")
+    #actividades = relationship("EmpresaActividad", back_populates="empresa")
+    #usuarios = relationship("Usuario", back_populates="empresa")
+    # TAL VEZ ESTO NO HACE FALTA O LO ROMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
     def __repr__(self):
         """
