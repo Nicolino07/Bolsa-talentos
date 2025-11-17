@@ -35,16 +35,10 @@ class OfertaActividad(Base):
     id_oferta = Column(Integer, ForeignKey('oferta_empleo.id_oferta'), primary_key=True)
     id_actividad = Column(Integer, ForeignKey('actividad.id_actividad'), primary_key=True)
     nivel_requerido = Column(String(50))
-<<<<<<< Updated upstream
 
     actividad = relationship("Actividad")      # <-- ESTA FALTABA
     oferta = relationship("OfertaEmpleo")      # <-- ESTA TAMBIÉN FALTABA
-=======
-    
-    # Relaciones
-    oferta = relationship("OfertaEmpleo", back_populates="actividades")
-    actividad = relationship("Actividad")
->>>>>>> Stashed changes
+
 
     # Validación del nivel requerido
     __table_args__ = (

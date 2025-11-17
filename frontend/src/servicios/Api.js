@@ -1,5 +1,6 @@
 
-const API_BASE_URL = 'http://localhost:3000';
+/*direccion del backend */
+const API_BASE_URL = 'http://localhost:3000'; 
 
 /* ==================== AUTENTICACIÓN ==================== */
 
