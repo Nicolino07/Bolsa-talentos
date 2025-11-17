@@ -1,6 +1,7 @@
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.database import Base
 from sqlalchemy.orm import relationship
 
@@ -15,7 +16,11 @@ class OfertaEmpleo(Base):
     fecha_publicacion = Column(DateTime, server_default=func.now())
     activa = Column(Boolean, default=True)
     
-  
+
+    # Relaciones
+    actividades = relationship("OfertaActividad", back_populates="oferta")
+
+
     # Validación: al menos uno debe estar presente
     __table_args__ = (
         CheckConstraint(
@@ -30,9 +35,16 @@ class OfertaActividad(Base):
     id_oferta = Column(Integer, ForeignKey('oferta_empleo.id_oferta'), primary_key=True)
     id_actividad = Column(Integer, ForeignKey('actividad.id_actividad'), primary_key=True)
     nivel_requerido = Column(String(50))
+<<<<<<< Updated upstream
 
     actividad = relationship("Actividad")      # <-- ESTA FALTABA
     oferta = relationship("OfertaEmpleo")      # <-- ESTA TAMBIÉN FALTABA
+=======
+    
+    # Relaciones
+    oferta = relationship("OfertaEmpleo", back_populates="actividades")
+    actividad = relationship("Actividad")
+>>>>>>> Stashed changes
 
     # Validación del nivel requerido
     __table_args__ = (
