@@ -22,7 +22,7 @@ CREATE TABLE persona (
     ciudad              VARCHAR(100) NOT NULL,
     provincia           VARCHAR(100) NOT NULL,
     sexo                VARCHAR(50) NOT NULL,
-    email                VARCHAR(100) UNIQUE NOT NULL,
+    email               VARCHAR(100) UNIQUE NOT NULL,
     telefono            VARCHAR(30),
     activa              BOOLEAN DEFAULT TRUE
 );
@@ -39,6 +39,20 @@ CREATE TABLE empresa (
     fecha_registro      TIMESTAMP DEFAULT NOW(),
     activa              BOOLEAN DEFAULT TRUE
 );
+
+-- Tabla para estudios de las personas
+
+CREATE TABLE estudio (
+    titulo              VARCHAR(200) NOT NULL,
+    dni                 INTEGER NOT NULL REFERENCES persona(dni) ON DELETE CASCADE,
+    institucion         VARCHAR(200) NOT NULL,
+    fecha_inicio        DATE NOT NULL,
+    fecha_fin           DATE,
+    estado              VARCHAR(50) CHECK (estado IN ('COMPLETADO', 'EN CURSO', 'SIN TERMINAR')),
+    descripcion         TEXT
+    PRIMARY KEY (titulo, dni)
+);
+
 
 -- Creación de tabla actividad para registrar distintos tipos de actividades o áreas
 CREATE TABLE actividad (
@@ -75,7 +89,7 @@ CREATE TABLE oferta_empleo (
     titulo                      VARCHAR(200) NOT NULL,
     descripcion                 TEXT,
     fecha_publicacion           TIMESTAMP DEFAULT NOW(),
-    activa BOOLEAN DEFAULT TRUE
+    activa                      BOOLEAN DEFAULT TRUE
 );
 
 -- Tabla intermedia oferta_actividad relacionando ofertas de empleo con actividades requeridas

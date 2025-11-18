@@ -31,63 +31,196 @@
   font-weight: 600;
 }
 
-
 /* ===== PERFIL PERSONA - EMPRESA ===== */
-
 .perfil-container {
   display: flex;
-  width: 100%;
-  gap: 20px;
-  margin-top: 40px;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: var(--primary-light);
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 20px;
+  min-height: calc(100vh - 200px);
+  align-items: flex-start;
+}
+
+/* Sidebar fijo a la izquierda - 1/4 de pantalla */
+.sidebar-perfil {
+  width: 25%;
+  min-width: 280px;
+  max-width: 320px;
+  background-color: var(--primary-light);
+  padding: 25px;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 20px;
+  height: fit-content;
 }
 
-.sidebar button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background: var(--primary-main);
-  color: white;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-.sidebar button:hover {
-  background: var(--primary-dark);
-}
-
-.sidebar .item {
-  background: var(--accent-color);
-  margin-bottom: 10px;
-  border-radius: 8px;
-  padding: 10px;
-  cursor: pointer;
-  text-align: center;
-  color: white;
-  transition: 0.3s;
-}
-
-.sidebar .item:hover {
-  opacity: 0.8;
-}
-
+/* Contenido principal - ocupa el resto del espacio */
 .perfil-content {
   flex: 1;
   background: var(--background-white);
-  padding: 25px;
+  padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-height: 600px;
 }
 
+/* ELIMINAR cualquier estilo que cause doble sidebar */
+.header .sidebar-perfil,
+.main .sidebar-perfil {
+  display: none;
+}
+
+/* Asegurar que solo haya un sidebar */
+.perfil-container > .sidebar-perfil {
+  display: block;
+}
+
+/* Reset para el contenido dentro del perfil */
+.perfil-content > * {
+  width: 100%;
+}
+
+
+/* Contenido principal - ocupa el resto del espacio */
+.perfil-content {
+  flex: 1;
+  background: var(--background-white);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-height: 600px;
+  width: 75%;
+}
+
+/* ===== ESTILOS GENERALES DEL FORMULARIO DENTRO DEL PERFIL ===== */
+.perfil-content .form-container {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  text-align: left; /* Añadir esto para consistencia */
+}
+
+.perfil-content .form-titulo {
+  text-align: left;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+/* Asegurar que los formularios dentro del perfil ocupen todo el ancho */
+.perfil-content .formulario {
+  width: 100%;
+}
+
+
+.sidebar-perfil button {
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: var(--primary-main);
+  color: white;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.sidebar-perfil button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.sidebar-perfil button:last-child {
+  background: var(--text-secondary);
+  margin-top: 25px;
+}
+
+.sidebar-perfil button:last-child:hover {
+  background: var(--text-primary);
+}
+
+/* Iconos para los botones del sidebar */
+.sidebar-perfil button::before {
+  font-size: 1.1rem;
+  min-width: 20px;
+}
+
+/* ===== CONTENIDO DE SECCIONES ===== */
+.seccion-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.seccion-placeholder h2 {
+  color: var(--primary-dark);
+  margin-bottom: 15px;
+}
+
+/* ===== ESTILOS PARA HABILIDADES ===== */
+.habilidades-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.habilidad-item {
+  background: var(--accent-color);
+  color: var(--text-icons);
+  padding: 10px 18px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.habilidad-item:hover {
+  background: #00796b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.habilidad-texto {
+  font-size: 0.9rem;
+}
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  color: var(--text-icons);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.btn-eliminar:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
 
 /* ===== BOTÓN VOLVER ===== */
 .btn-volver {
@@ -95,20 +228,22 @@
   color: var(--primary-dark);
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   cursor: pointer;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   font-weight: 500;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .btn-volver:hover {
   background-color: var(--primary-main);
   color: var(--text-icons);
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 /* ===== SELECTOR DE TIPO ===== */
@@ -125,55 +260,70 @@
   color: var(--text-secondary);
   border: 2px solid var(--divider-color);
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 14px 24px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   flex: 1;
-  min-width: 150px;
+  min-width: 160px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .selector-btn:hover {
   border-color: var(--primary-main);
   color: var(--primary-main);
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .selector-btn.activo {
   background-color: var(--accent-color);
   color: var(--text-icons);
   border-color: var(--accent-color);
+  box-shadow: 0 4px 8px rgba(0,150,136,0.3);
 }
 
 /* ===== FORMULARIO ===== */
 .formulario {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 24px;
   text-align: left;
 }
 
 .formulario label {
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: 500;
   display: block;
+  font-size: 0.95rem;
 }
 
-.formulario input {
-  padding: 12px;
+.formulario input,
+.formulario textarea,
+.formulario select {
+  padding: 14px;
   border: 1px solid var(--divider-color);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   width: 100%;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
-.formulario input:focus {
+.formulario input:focus,
+.formulario textarea:focus,
+.formulario select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.1);
+}
+
+.formulario textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
 }
 
 /* ===== BOTÓN ENVIAR ===== */
@@ -182,21 +332,62 @@
   color: var(--text-icons);
   border: none;
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
   font-size: 1.1rem;
   cursor: pointer;
-  transition: background 0.3s;
-  margin-top: 10px;
+  transition: all 0.3s ease;
+  margin-top: 15px;
   font-weight: 500;
   grid-column: 1 / -1;
+  box-shadow: 0 4px 8px rgba(0,150,136,0.3);
 }
 
 .btn-submit:hover {
   background-color: #00796b;
   transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,150,136,0.4);
+}
+
+.btn-submit:disabled {
+  background-color: var(--divider-color);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== ESTILOS PARA OFERTAS ===== */
+.oferta-item {
+  background: var(--background-white);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.oferta-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
 }
 
 /* ===== RESPONSIVE ===== */
+@media (max-width: 968px) {
+  .perfil-container {
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+  }
+  
+  .sidebar-perfil {
+    width: 100%;
+    order: 2;
+  }
+  
+  .perfil-content {
+    order: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .form-container {
     padding: 30px 20px;
@@ -204,9 +395,13 @@
     margin: 20px auto;
   }
   
+  .perfil-content {
+    padding: 20px;
+  }
+  
   .selector-tipo {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   
   .selector-btn {
@@ -215,6 +410,10 @@
   
   .form-titulo {
     font-size: 1.5rem;
+  }
+  
+  .sidebar-perfil {
+    padding: 20px;
   }
 }
 
@@ -228,10 +427,21 @@
   }
   
   .formulario {
-    gap: 16px;
+    gap: 18px;
   }
   
-  .formulario input {
-    padding: 10px;
+  .formulario input,
+  .formulario textarea,
+  .formulario select {
+    padding: 12px;
+  }
+  
+  .habilidades-lista {
+    gap: 8px;
+  }
+  
+  .habilidad-item {
+    padding: 8px 14px;
+    font-size: 0.85rem;
   }
 }

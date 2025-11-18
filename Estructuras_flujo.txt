@@ -5,32 +5,39 @@ BOLSA-TALENTOS/
 |     ├── requirements.txt
 |     ├── main.py
 |     └── app/
-|        |
-|        ├── autenticacion/                       # Módulo de autenticación
-|        │    ├── __init__.py
-|        │    ├── models.py              # Modelo Usuario
-|        │    ├── routes.py              # APIs: /registro, /login, /logout
-|        │    └── security.py            # Password hashing, JWT tokens
-|        │      
-|        ├── database.py              # Conexión DB única
-|        ├── personas/                # TODO relacionado con Persona
-|        │   ├── __init__.py
-|        │   ├── models.py            # Modelo Persona (POO)
-|        │   └── routes.py            # APIs + Servicios (Funcional)
-|        |
-|        └── empresas/                # TODO relacionado con Empresa
-|        |    ├── __init__.py
-|        |    ├── models.py            # Modelo Empresa (POO)
-|        |    └── routes.py            # APIs + Servicios (Funcional)
-|        |
-|        ├── prolog/                #  Paradigma Lógico
-│        │   ├── motor.py       # Bridge Python↔Prolog
-│        │   ├── reglas.pl      # Reglas de matching
-|        │   ├── hechos.pl      # Hechos generados desde DB
-│        │   └── server.pl
-|        └── matching/          # Servicio de matching
-|            ├── servicio.py    # Orquesta todo el proceso
-|            └── routes.py
+|       ├── actividades/
+|       │   ├── __init__.py
+|       │   ├── models.py
+|       │   └── routes.py
+|       ├── ofertas/
+|       │   ├── __init__.py
+|       │   ├── models.py
+|       │   └── routes.py
+|       |
+|       ├── autenticacion/                       # Módulo de autenticación
+|       │    ├── __init__.py
+|       │    ├── models.py              # Modelo Usuario
+|       │    ├── routes.py              # APIs: /registro, /login, /logout
+|       │    └── security.py            # Password hashing, JWT tokens
+|       │      
+|       ├── database.py              # Conexión DB única
+|       ├── personas/                # TODO relacionado con Persona
+|       │   ├── __init__.py
+|       │   ├── models.py            # Modelo Persona (POO)
+|       │   └── routes.py            # APIs + Servicios (Funcional)
+|       |
+|       └── empresas/                # TODO relacionado con Empresa
+|       |    ├── __init__.py
+|       |    ├── models.py            # Modelo Empresa (POO)
+|       |    └── routes.py            # APIs + Servicios (Funcional)
+|       |
+|       ├── prolog/                #  Paradigma Lógico
+│       │   ├── motor.py       # Bridge Python↔Prolog
+│       │   ├── reglas.pl      # Reglas de matching
+|       │   └── hechos.pl      # Hechos generados desde DB
+|       └── matching/          # Servicio de matching
+|           ├── routes.py
+|           └── servicio.py    # Orquesta todo el proceso
 |
 └── frontend/
 |   ├── Dockerfile
@@ -74,12 +81,16 @@ BOLSA-TALENTOS/
 
 Aca una posible forma de como funciona el sistema
 
-EMPRESA: "Necesitamos desarrollador Python con Django para startup"
-    ↓
-PROLOG: Detecta → [python, django, startup] 
-    ↓
-PROLOG: "Startup implica → flexibilidad, aprendizaje rápido"
-    ↓  
-PROLOG: Busca personas con [python, django] + flexibilidad
-    ↓
-RESULTADO: "Laura: 95% - Tiene Python avanzado y experiencia en startups"
+Usuario hace click en "Buscar Empleo"
+     ↓
+Frontend → API GET /matching/persona/{dni}/recomendaciones
+     ↓
+Backend activa el Motor Prolog
+     ↓
+Motor Prolog: GENERA HECHOS ACTUALIZADOS desde PostgreSQL
+     ↓
+Motor Prolog: EJECUTA REGLAS LÓGICAS de matching
+     ↓
+Backend: Transforma resultados Prolog → JSON
+     ↓
+Frontend: Muestra ofertas recomendadas ordenadas por compatibilidad

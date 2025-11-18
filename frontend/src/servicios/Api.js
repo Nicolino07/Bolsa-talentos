@@ -1,5 +1,6 @@
 
-const API_BASE_URL = 'http://localhost:3000';
+/*direccion del backend */
+const API_BASE_URL = 'http://localhost:3000'; 
 
 /* ==================== AUTENTICACIÓN ==================== */
 
@@ -163,6 +164,33 @@ export const listarPersonas = async (token) => {
   return await response.json();
 };
 
+
+export const actualizarPersona = async (dni, datosActualizados, token) => {
+  try {
+    console.log('📤 Actualizando persona:', { dni, datosActualizados });
+    
+    const response = await fetch(`${API_BASE_URL}/api/personas/${dni}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(datosActualizados),
+    });
+
+    const data = await response.json();
+    console.log('📨 Respuesta actualización persona:', data);
+    
+    if (!response.ok) {
+      throw new Error(data.detail || 'Error al actualizar persona');
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error al actualizar persona:', error);
+    throw error;
+  }
+};
+
+
 /* ==================== EMPRESAS ==================== */
 
 export const obtenerEmpresa = async (id_empresa, token) => {
@@ -188,6 +216,34 @@ export const listarEmpresas = async (token) => {
   if (!response.ok) throw new Error('Error al obtener empresas');
   return await response.json();
 };
+
+
+export const actualizarEmpresa = async (id_empresa, datosActualizados, token) => {
+  try {
+    console.log('📤 Actualizando empresa:', { id_empresa, datosActualizados });
+    
+    const response = await fetch(`${API_BASE_URL}/api/empresas/${id_empresa}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(datosActualizados),
+    });
+
+    const data = await response.json();
+    console.log('📨 Respuesta actualización empresa:', data);
+    
+    if (!response.ok) {
+      throw new Error(data.detail || 'Error al actualizar empresa');
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error al actualizar empresa:', error);
+    throw error;
+  }
+};
+
+
 
 /* ==================== OFERTAS ==================== */
 

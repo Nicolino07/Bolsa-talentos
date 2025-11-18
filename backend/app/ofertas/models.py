@@ -1,6 +1,7 @@
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.database import Base
 from sqlalchemy.orm import relationship
 
@@ -15,7 +16,11 @@ class OfertaEmpleo(Base):
     fecha_publicacion = Column(DateTime, server_default=func.now())
     activa = Column(Boolean, default=True)
     
-  
+
+    # Relaciones
+    actividades = relationship("OfertaActividad", back_populates="oferta")
+
+
     # Validación: al menos uno debe estar presente
     __table_args__ = (
         CheckConstraint(
@@ -33,6 +38,7 @@ class OfertaActividad(Base):
 
     actividad = relationship("Actividad")      # <-- ESTA FALTABA
     oferta = relationship("OfertaEmpleo")      # <-- ESTA TAMBIÉN FALTABA
+
 
     # Validación del nivel requerido
     __table_args__ = (

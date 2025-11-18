@@ -1,5 +1,7 @@
+version: "3.9"
+
 services:
-  # Servicio de base de datos PostgreSQL
+
   db:
     image: postgres:15
     container_name: bolsa_talentos_db
@@ -13,15 +15,16 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/app/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
+    networks:
+      - bolsa_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d bolsa_talentos"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bolsa_talentos || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
 
-  # Servicio pgAdmin
-  pgadmin:  
+  pgadmin:
     image: dpage/pgadmin4
     container_name: bolsa_talentos_pgadmin
     restart: always
@@ -33,11 +36,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - bolsa_net
 
-  # Servicio backend FastAPI + Prolog - CORREGIDO
+  prolog-engine:
+    build: ./backend/app/prolog
+    container_name: bolsa_talentos_prolog
+    ports:
+      - "4000:4000"
+    volumes:
+      - prolog_data:/app/data   # ← VOLUMEN EN /app/data
+    networks:
+      - bolsa_net
+    restart: unless-stopped
+
   backend:
     build: ./backend
     container_name: bolsa_talentos_backend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -46,23 +62,32 @@ services:
       DB_PASS: postgres1234
       DB_NAME: bolsa_talentos
       DB_PORT: 5432
-      PROLOG_ENABLED: "true"
-      DATABASE_URL: "postgresql://postgres:postgres1234@db:5432/bolsa_talentos"
+      DATABASE_URL: postgresql://postgres:postgres1234@db:5432/bolsa_talentos
+      PROLOG_URL: http://prolog-engine:4000
     volumes:
-      - ./backend:/app
-    depends_on:  # ← FORMA CORRECTA
+      - prolog_data:/app/prolog_data   # ← MISMO VOLUMEN, DIFERENTE RUTA
+    networks:
+      - bolsa_net
+    depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+      prolog-engine:
+        condition: service_started
 
-  # Servicio frontend React
   frontend:
     build: ./frontend
     container_name: bolsa_talentos_frontend
+    restart: unless-stopped
     ports:
       - "5173:5173"
+    networks:
+      - bolsa_net
     depends_on:
       - backend
 
 volumes:
   db_data:
+  prolog_data:   # ← VOLUMEN COMPARTIDO
+
+networks:
+  bolsa_net:

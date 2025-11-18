@@ -1,9 +1,9 @@
-fastapi==0.104.1                    # Framework web para construir APIs
-uvicorn==0.24.0                     # Servidor ASGI para FastAPI
-sqlalchemy==2.0.23                  # ORM para interacción con bases de datos
-psycopg2-binary==2.9.9              # Adaptador PostgreSQL para Python
-pyswip==0.2.10                      # Interfaz Prolog-Python
-email-validator==2.1.0              # Validación de direcciones de correo electrónico
-passlib[bcrypt]==1.7.4              # Gestión segura de contraseñas
-python-jose[cryptography]==3.3.0    # Manejo de JWT
-pydantic==2.7.2                     # Validación de datos y configuración
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+email-validator==2.1.0
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+pydantic==2.7.2
+requests==2.31.0

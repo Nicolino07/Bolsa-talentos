@@ -1,60 +1,73 @@
 import { useState } from "react";
+import "../../styles/FormStyles.css";
 
-function HabilidadForm({ onAgregar }) {
-  const [actividad, setActividad] = useState("");
-  const [nivel, setNivel] = useState("PRINCIPIANTE");
-  const [anios, setAnios] = useState(0);
+export default function HabilidadesPersona() {
+  const [habilidades, setHabilidades] = useState([]);
+  const [nuevaHabilidad, setNuevaHabilidad] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const agregarHabilidad = () => {
+    if (nuevaHabilidad.trim() && !habilidades.includes(nuevaHabilidad)) {
+      setHabilidades([...habilidades, nuevaHabilidad.trim()]);
+      setNuevaHabilidad("");
+    }
+  };
 
-    onAgregar({
-      actividad,
-      nivel_experiencia: nivel,
-      años_experiencia: Number(anios),
-    });
-
-    setActividad("");
-    setAnios(0);
-    setNivel("PRINCIPIANTE");
+  const eliminarHabilidad = (habilidad) => {
+    setHabilidades(habilidades.filter(h => h !== habilidad));
   };
 
   return (
-    <form className="formulario" onSubmit={handleSubmit} style={{ marginTop: "20px" }}>
-      <div>
-        <label>Actividad</label>
-        <input
-          type="text"
-          value={actividad}
-          onChange={(e) => setActividad(e.target.value)}
-          placeholder="Ej: Programación, Carpintería..."
-          required
-        />
-      </div>
+    <div className="form-container">
+      <h2 className="form-titulo">Mis Habilidades</h2>
+      <div className="formulario">
+        <div>
+          <label htmlFor="habilidad">Agregar habilidad</label>
+          <input 
+            type="text" 
+            id="habilidad" 
+            value={nuevaHabilidad}
+            onChange={(e) => setNuevaHabilidad(e.target.value)}
+            placeholder="Ej: JavaScript, React, Photoshop..."
+            onKeyPress={(e) => e.key === 'Enter' && agregarHabilidad()}
+          />
+        </div>
+        
+        <button 
+          className="btn-submit" 
+          type="button" 
+          onClick={agregarHabilidad}
+        >
+          Agregar Habilidad
+        </button>
 
-      <div>
-        <label>Nivel de experiencia</label>
-        <select value={nivel} onChange={(e) => setNivel(e.target.value)}>
-          <option>PRINCIPIANTE</option>
-          <option>INTERMEDIO</option>
-          <option>AVANZADO</option>
-          <option>EXPERTO</option>
-        </select>
+        {habilidades.length > 0 && (
+          <div style={{ marginTop: '20px' }}>
+            <h3 style={{ 
+              color: 'var(--primary-dark)', 
+              marginBottom: '15px',
+              fontSize: '1.2rem'
+            }}>
+              Mis Habilidades:
+            </h3>
+            <div className="habilidades-lista">
+              {habilidades.map((habilidad, index) => (
+                <div 
+                  key={index}
+                  className="habilidad-item"
+                >
+                  <span className="habilidad-texto">{habilidad}</span>
+                  <button 
+                    className="btn-eliminar"
+                    onClick={() => eliminarHabilidad(habilidad)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      <div>
-        <label>Años de experiencia</label>
-        <input
-          type="number"
-          min="0"
-          value={anios}
-          onChange={(e) => setAnios(e.target.value)}
-        />
-      </div>
-
-      <button className="btn-submit">Agregar</button>
-    </form>
+    </div>
   );
 }
-
-export default HabilidadForm;
