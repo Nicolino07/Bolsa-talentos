@@ -215,3 +215,139 @@ start_server :-
     thread_get_message(_).
 
 :- initialization(start_server, main).
+
+
+% -----------------------------
+% ENDPOINT: BUSCAR POR HABILIDADES
+% -----------------------------
+:- http_handler(root(buscar_por_habilidades), handle_buscar_por_habilidades, []).
+
+handle_buscar_por_habilidades(Request) :-
+    http_parameters(Request, [
+        actividades(ActividadesAtom, []),
+        nivel_minimo(NivelMinAtom, [])
+    ]),
+    
+    % Convertir string de actividades a lista [1,2,3]
+    atom_to_term(ActividadesAtom, ActividadesList, _),
+    atom_to_term(NivelMinAtom, NivelMin, _),
+    
+    findall(
+        _{dni:DNI, nombre:Nombre, apellido:Apellido, ciudad:Ciudad, puntaje_total:Puntaje},
+        candidato_por_habilidades(ActividadesList, NivelMin, DNI, Nombre, Apellido, Ciudad, Puntaje),
+        Resultados
+    ),
+
+    reply_json_dict(_{
+        status:"ok",
+        actividades:ActividadesList,
+        nivel_minimo:NivelMin,
+        candidatos:Resultados
+    }).
+
+% Regla para encontrar candidatos por habilidades
+candidato_por_habilidades(ActividadesRequeridas, NivelMin, DNI, Nombre, Apellido, Ciudad, PuntajeTotal) :-
+    persona(DNI, Nombre, Apellido, Ciudad, _),
+    findall(Puntaje, (
+        member(ActividadID, ActividadesRequeridas),
+        persona_actividad(DNI, ActividadID, Nivel, Anios),
+        nivel_valor(Nivel, ValorNivel),
+        ValorNivel >= NivelMin,
+        Puntaje is ValorNivel * 20 + Anios * 5
+    ), Puntajes),
+    sum_list(Puntajes, PuntajeTotal),
+    PuntajeTotal > 0.
+
+% -----------------------------
+% ENDPOINT: BUSCAR POR UBICACIÓN
+% -----------------------------
+:- http_handler(root(buscar_por_ubicacion), handle_buscar_por_ubicacion, []).
+
+handle_buscar_por_ubicacion(Request) :-
+    http_parameters(Request, [
+        ciudad(Ciudad, []),
+        provincia(Provincia, [])
+    ]),
+    
+    findall(
+        _{dni:DNI, nombre:Nombre, apellido:Apellido, ciudad:CiudadPersona, provincia:ProvinciaPersona},
+        persona(DNI, Nombre, Apellido, CiudadPersona, ProvinciaPersona),
+        TodasPersonas
+    ),
+    
+    % Filtrar por ciudad y/o provincia
+    (   Ciudad \= ''
+    ->  include([P]>>get_dict(ciudad, P, CiudadF), TodasPersonas, Filtrado1)
+    ;   Filtrado1 = TodasPersonas
+    ),
+    
+    (   Provincia \= ''
+    ->  include([P]>>get_dict(provincia, P, ProvinciaF), Filtrado1, Resultados)
+    ;   Resultados = Filtrado1
+    ),
+
+    reply_json_dict(_{
+        status:"ok",
+        ciudad:Ciudad,
+        provincia:Provincia,
+        candidatos:Resultados
+    }).
+
+% -----------------------------
+% ENDPOINT: OFERTAS POR EMPRESA
+% -----------------------------
+:- http_handler(root(ofertas_por_empresa), handle_ofertas_por_empresa, []).
+
+handle_ofertas_por_empresa(Request) :-
+    http_parameters(Request, [
+        id_empresa(EmpresaIDAtom, [])
+    ]),
+    atom_number(EmpresaIDAtom, EmpresaID),
+    
+    findall(
+        _{id:ID, titulo:Titulo, descripcion:Desc, activa:Activa},
+        oferta(ID, EmpresaID, Titulo, Activa),
+        Ofertas
+    ),
+
+    reply_json_dict(_{
+        status:"ok",
+        id_empresa:EmpresaID,
+        ofertas:Ofertas
+    }).
+
+% -----------------------------
+% ENDPOINT: MATCHING AVANZADO
+% -----------------------------
+:- http_handler(root(matching_avanzado), handle_matching_avanzado, []).
+
+handle_matching_avanzado(Request) :-
+    http_parameters(Request, [
+        dni(DniAtom, []),
+        id_oferta(OfertaIDAtom, [])
+    ]),
+    atom_number(DniAtom, DNI),
+    atom_number(OfertaIDAtom, OfertaID),
+    
+    (   recomendacion(DNI, OfertaID, Puntaje)
+    ->  oferta(OfertaID, _, Titulo, _),
+        persona(DNI, Nombre, Apellido, _, _),
+        reply_json_dict(_{
+            status:"ok",
+            match: true,
+            dni:DNI,
+            nombre:Nombre,
+            apellido:Apellido,
+            oferta:OfertaID,
+            titulo:Titulo,
+            puntaje:Puntaje
+        })
+    ;   reply_json_dict(_{
+            status:"ok", 
+            match: false,
+            dni:DNI,
+            oferta:OfertaID,
+            puntaje:0
+        })
+    ).
+

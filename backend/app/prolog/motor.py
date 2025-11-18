@@ -65,3 +65,51 @@ class MotorProlog:
                 "dni": dni, 
                 "recomendaciones": []
             }
+            
+    def buscar_por_habilidades(self, actividades: list, nivel_minimo: int):
+        """Buscar candidatos por habilidades específicas"""
+        try:
+            actividades_str = str(actividades).replace(" ", "")
+            url = f"{self.prolog_url}/buscar_por_habilidades?actividades={actividades_str}&nivel_minimo={nivel_minimo}"
+            
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def buscar_por_ubicacion(self, ciudad: str = "", provincia: str = ""):
+        """Buscar candidatos por ubicación"""
+        try:
+            params = {}
+            if ciudad: params["ciudad"] = ciudad
+            if provincia: params["provincia"] = provincia
+            
+            url = f"{self.prolog_url}/buscar_por_ubicacion"
+            r = requests.get(url, params=params, timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def ofertas_por_empresa(self, id_empresa: int):
+        """Buscar ofertas por empresa"""
+        try:
+            url = f"{self.prolog_url}/ofertas_por_empresa?id_empresa={id_empresa}"
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    def matching_avanzado(self, dni: int, id_oferta: int):
+        """Verificar matching específico entre persona y oferta"""
+        try:
+            url = f"{self.prolog_url}/matching_avanzado?dni={dni}&id_oferta={id_oferta}"
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            return {"error": str(e)}
+        
+        
