@@ -1,8 +1,10 @@
 import { useState } from "react";
-import SidebarEmpresa from "./empresa/SidebarEmpresa";
-import InfoEmpresa from "./empresa/InfoEmpresa";
-import OfertaForm from "./OfertaForm";
-import GestionOfertas from "./GestionOfertas";
+import SidebarEmpresa from "./SidebarEmpresa";
+import InfoEmpresa from "./InfoEmpresa";
+import OfertaForm from "../OfertaForm";
+import GestionOfertas from "../GestionOfertas";
+import MisActividades from "../MisActividades";
+import "../../styles/FormStyles.css";
 
 
 export default function PerfilEmpresa({ usuario, onLogout }) {
@@ -16,12 +18,7 @@ export default function PerfilEmpresa({ usuario, onLogout }) {
 
       <div className="perfil-content">
         {seccion === "info" && <InfoEmpresa usuario={usuario} />}
-        {seccion === "actividades" && (
-          <div className="seccion-placeholder">
-            <h2>Mis Actividades</h2>
-            <p>Esta sección estará disponible próximamente.</p>
-          </div>
-        )}
+        {seccion === "mis-actividades" && <MisActividades usuario={usuario} tipo="empresa" />}
         {seccion === "crear-oferta" && (
           <OfertaForm 
             empresaId={usuario.id_empresa} 

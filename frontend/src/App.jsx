@@ -1,20 +1,70 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // ← Agrega useRef aquí
 import CrearUsuarioForm from './components/CrearUsuarioForm.jsx';
 import BuscarEmpleo from './components/BuscarEmpleo';
-import PerfilPersona from './components/PerfilPersona';
-import PerfilEmpresa from './components/PerfilEmpresa'; 
+import PerfilPersona from './components/persona/PerfilPersona';
+import PerfilEmpresa from './components/empresa/PerfilEmpresa'; 
 import LoginForm from './components/LoginForm.jsx';
 import './App.css';
 
 function App() {
   const [vista, setVista] = useState('inicio');
   const [usuario, setUsuario] = useState(null);
+  
+  // Timeout de inactividad (10 minutos = 600000 ms)
+  const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    console.log('🔒 Cerrando sesión por inactividad');
     setUsuario(null);
     localStorage.removeItem('token');
     setVista("inicio");
+  }, []);
+
+  // SOLUCIÓN SIMPLE CON useRef
+  const inactivityTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!usuario) return;
+
+    const handleActivity = () => {
+      // Limpiar timer anterior
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      
+      // Crear nuevo timer
+      inactivityTimerRef.current = setTimeout(() => {
+        console.log('🔒 Cerrando sesión por inactividad');
+        handleLogout();
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity);
+    });
+
+    // Iniciar timer inicial
+    handleActivity();
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [usuario, handleLogout]);
+
+  // Función de logout manual (para el botón)
+  const handleManualLogout = () => {
+    // Limpiar el timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    handleLogout();
   };
 
   const handleLoginSuccess = (datosUser) => {
@@ -48,10 +98,22 @@ function App() {
           </div>
         ) : (
           <div className="acciones-header">
+            
             <span className="usuario-info">
               Hola, {usuario.nombre || usuario.nombre_empresa || usuario.email}
+              {inactivityTimerRef.current && ( // ← CAMBIA inactivityTimer por inactivityTimerRef.current
+                <span style={{ 
+                  fontSize: '0.8rem', 
+                  display: 'block', 
+                  color: '#666',
+                  marginTop: '2px'
+                }}>
+                  Sesión activa
+                </span>
+              )}
             </span>
-            <button className="btn-header" onClick={handleLogout}>
+
+            <button className="btn-header" onClick={handleManualLogout}>
               Cerrar Sesión
             </button>
           </div>
@@ -99,7 +161,7 @@ function App() {
             {console.log('🎯 Mostrando PerfilPersona')}
             <PerfilPersona 
               usuario={usuario}
-              onLogout={handleLogout}
+              onLogout={handleManualLogout}
             />
           </>
         )}
@@ -110,7 +172,7 @@ function App() {
             {console.log('🎯 Mostrando PerfilEmpresa')}
             <PerfilEmpresa 
               usuario={usuario}
-              onLogout={handleLogout}
+              onLogout={handleManualLogout}
             />
           </>
         )}

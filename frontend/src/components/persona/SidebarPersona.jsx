@@ -1,13 +1,21 @@
 
-function SidebarPersona({ onSelect, onLogout }) {
+
+function SidebarPersona({ setSeccion, onLogout }) {
   return (
     <div className="sidebar-perfil">
-      <button onClick={() => onSelect("datos")}>Mis Datos</button>
-      <button onClick={() => onSelect("actividades")}>Mis Actividades</button>
-      <button onClick={() => onSelect("agregar")}>Agregar Actividad</button>
-
+      <button onClick={() => setSeccion("info")}>
+        👤 Mis Datos
+      </button>
+      {/*Boton mis habilidades usa componente MisActividades */}
+      <button onClick={() => setSeccion("mis-actividades")}>  
+        🛠 Mis Habilidades
+      </button>
+      <button onClick={() => setSeccion("trabajo")}>
+        🔍 Buscar Trabajo
+      </button>
+  
     </div>
   );
 }
 
-export default SidebarPersona;
+export default SidebarPersona

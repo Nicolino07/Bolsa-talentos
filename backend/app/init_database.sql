@@ -22,7 +22,7 @@ CREATE TABLE persona (
     ciudad              VARCHAR(100) NOT NULL,
     provincia           VARCHAR(100) NOT NULL,
     sexo                VARCHAR(50) NOT NULL,
-    email                VARCHAR(100) UNIQUE NOT NULL,
+    email               VARCHAR(100) UNIQUE NOT NULL,
     telefono            VARCHAR(30),
     activa              BOOLEAN DEFAULT TRUE
 );

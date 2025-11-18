@@ -1,1 +1,0 @@
-%% Archivo de hechos vacío

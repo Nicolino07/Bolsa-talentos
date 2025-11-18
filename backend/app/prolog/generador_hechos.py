@@ -16,9 +16,17 @@ def limpiar_y_formatear(texto):
 def generar_hechos():
     db = SessionLocal()
     
-    # RUTAS ACTUALIZADAS - volumen compartido
-    ruta_hechos = "/app/prolog_data/hechos.pl"
-    ruta_ofertas = "/app/prolog_data/ofertas.pl"
+    # RUTAS - escribir en volumen Y en directorio del código
+    rutas_hechos = [
+        "/app/prolog_data/hechos.pl",      # ← Volumen compartido (funcionalidad)
+        "/app/app/prolog/hechos_visible.pl" # ← Directorio código (para ver)
+    ]
+    
+    rutas_ofertas = [
+        "/app/prolog_data/ofertas.pl",      # ← Volumen compartido  
+        "/app/app/prolog/ofertas_visible.pl" # ← Directorio código (para ver)
+    ]
+
 
     lineas_hechos = []
     lineas_ofertas = []
@@ -80,20 +88,33 @@ def generar_hechos():
         )
 
     # -------------------------
-    # ESCRIBIR ARCHIVOS (COMPARTIDOS)
+    # ESCRIBIR EN AMBAS RUTAS
     # -------------------------
     contenido_hechos = "\n".join(lineas_hechos)
     contenido_ofertas = "\n".join(lineas_ofertas)
 
-    with open(ruta_hechos, "w", encoding="utf-8") as f:
-        f.write(contenido_hechos)
+    # Escribir en todas las rutas de hechos
+    for ruta in rutas_hechos:
+        try:
+            os.makedirs(os.path.dirname(ruta), exist_ok=True)
+            with open(ruta, "w", encoding="utf-8") as f:
+                f.write(contenido_hechos)
+            print(f"✅ hechos.pl generado en: {ruta}")
+        except Exception as e:
+            print(f"⚠️  No se pudo escribir en {ruta}: {e}")
 
-    with open(ruta_ofertas, "w", encoding="utf-8") as f:
-        f.write(contenido_ofertas)
+    for ruta in rutas_ofertas:
+        try:
+            os.makedirs(os.path.dirname(ruta), exist_ok=True)
+            with open(ruta, "w", encoding="utf-8") as f:
+                f.write(contenido_ofertas)
+            print(f"✅ ofertas.pl generado en: {ruta}")
+        except Exception as e:
+            print(f"⚠️  No se pudo escribir en {ruta}: {e}")
 
     db.close()
 
-    print("✔ hechos.pl y ofertas.pl generados correctamente en volumen compartido")
+    print("🎯 Archivos generados en todas las rutas configuradas")
 
     # SOLO RECARGAR (NO UPLOAD NECESARIO)
     try:
@@ -108,8 +129,8 @@ def generar_hechos():
         print(f"❌ ERROR recargando hechos en Prolog: {e}")
 
     return {
-        "hechos": ruta_hechos,
-        "ofertas": ruta_ofertas,
+        "hechos": rutas_hechos,
+        "ofertas": rutas_ofertas,
         "reglas_hechos": len(lineas_hechos),
         "reglas_ofertas": len(lineas_ofertas)
     }

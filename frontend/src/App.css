@@ -75,17 +75,27 @@ html, body, #root {
   background-color: #00796b;
 }
 
-/* ===== MAIN - CORREGIDO ===== */
+/* ===== MAIN - CORREGIDO PARA NO AFECTAR PERFILES ===== */
 .main {
   flex: 1;
+  background: var(--primary-main);
+  width: 100%;
+}
+
+/* Estilos específicos para la vista de inicio */
+.main:has(.busqueda) {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background: var(--primary-main);
   padding: 40px 20px;
-  width: 100%;
-  gap: 40px; /* Espacio entre secciones */
+  gap: 40px;
+}
+
+/* Estilos específicos para perfiles - NO centrar */
+.main:has(.perfil-container) {
+  display: block;
+  padding: 0;
 }
 
 .busqueda {
