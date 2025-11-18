@@ -9,4 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
+RUN chmod +x startScript.sh #permisos para ejecución en windows
 CMD ["sh", "startScript.sh"]

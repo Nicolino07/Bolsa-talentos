@@ -14,7 +14,7 @@ class Empresa(Base):
     Atributos:
         id_empresa (Integer): Identificador único y autoincremental de la empresa.
         nombre (String): Nombre único y obligatorio de la empresa.
-        direccion (String): Dirección física de la empresa.
+        direccion (String): Dirección física de la empresa. 
         ciudad (String): Ciudad donde está ubicada la empresa.
         provincia (String): Provincia donde se encuentra la empresa.
         email (String): Dirección de correo electrónico de contacto de la empresa.
