@@ -1,0 +1,7 @@
+postulacion(20400123, 1, "contratado").
+postulacion(27110999, 2, "rechazado").
+postulacion(35222888, 1, "entrevista").
+postulacion(30123999, 3, "contratado").
+postulacion(25999888, 4, "pendiente").
+postulacion(27977444, 5, "revisando").
+postulacion(33900888, 6, "contratado").

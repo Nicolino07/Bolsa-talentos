@@ -114,31 +114,84 @@ def generar_hechos():
         )
 
     # -------------------------
-    # RELACIONES APRENDIDAS
+    # RELACIONES APRENDIDAS - BIDIRECCIONAL (PostgreSQL + Prolog)
     # -------------------------
-    relaciones = db.execute(text("""
+    
+    # 1. Obtener relaciones de PostgreSQL (conocimiento histórico)
+    relaciones_sql = db.execute(text("""
         SELECT habilidad_base, habilidad_objetivo, confianza, frecuencia, fuente
         FROM relaciones_aprendidas
         WHERE activo = true
     """)).fetchall()
 
-    for rel in relaciones:
+    # 2. Obtener relaciones de Prolog (aprendizaje actual)
+    relaciones_prolog = []
+    try:
+        PROLOG_URL = os.getenv("PROLOG_URL", "http://prolog-engine:4000")
+        response = requests.get(f"{PROLOG_URL}/relaciones_aprendidas", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            relaciones_prolog = data.get('relaciones', [])
+            print(f"📊 Relaciones de Prolog: {len(relaciones_prolog)}")
+        else:
+            print("⚠️ No se pudieron obtener relaciones de Prolog")
+    except Exception as e:
+        print(f"⚠️ Error obteniendo relaciones de Prolog: {e}")
+
+    # 3. Combinar relaciones (evitar duplicados, mantener mayor confianza)
+    relaciones_combinadas = {}
+    
+    # Agregar relaciones de PostgreSQL
+    for rel in relaciones_sql:
+        clave = f"{rel.habilidad_base}->{rel.habilidad_objetivo}"
+        relaciones_combinadas[clave] = {
+            'base': rel.habilidad_base,
+            'objetivo': rel.habilidad_objetivo,
+            'confianza': float(rel.confianza),
+            'frecuencia': rel.frecuencia,
+            'fuente': 'postgresql'
+        }
+    
+    # Agregar/actualizar con relaciones de Prolog (mantener mayor confianza)
+    for rel in relaciones_prolog:
+        clave = f"{rel['habilidad_base']}->{rel['habilidad_objetivo']}"
+        confianza_prolog = rel['confianza']
+        
+        if clave in relaciones_combinadas:
+            # Mantener la relación con mayor confianza
+            if confianza_prolog > relaciones_combinadas[clave]['confianza']:
+                relaciones_combinadas[clave].update({
+                    'confianza': confianza_prolog,
+                    'frecuencia': rel['frecuencia'],
+                    'fuente': 'prolog_actualizado'
+                })
+        else:
+            # Nueva relación de Prolog
+            relaciones_combinadas[clave] = {
+                'base': rel['habilidad_base'],
+                'objetivo': rel['habilidad_objetivo'],
+                'confianza': confianza_prolog,
+                'frecuencia': rel['frecuencia'],
+                'fuente': 'prolog'
+            }
+
+    # 4. Generar líneas para el archivo
+    for rel in relaciones_combinadas.values():
         lineas_relaciones.append(
-            f'relacion_aprendida("{limpiar_y_formatear(rel.habilidad_base)}", '
-            f'"{limpiar_y_formatear(rel.habilidad_objetivo)}", {float(rel.confianza)}, '
-            f'{rel.frecuencia}, "{rel.fuente}").'
+            f"relacion_co_ocurrencia('{limpiar_y_formatear(rel['base'])}', "
+            f"'{limpiar_y_formatear(rel['objetivo'])}', {rel['confianza']}, "
+            f"{rel['frecuencia']})."
         )
 
     # Si no hay relaciones, agregar algunas por defecto
     if not lineas_relaciones:
         lineas_relaciones.extend([
             '% Relaciones por defecto (se aprenderán automáticamente con el tiempo)',
-            'relacion_aprendida("Python", "Django", 0.85, 1, "manual").',
-            'relacion_aprendida("Python", "Flask", 0.78, 1, "manual").',
-            'relacion_aprendida("Java", "Spring Boot", 0.82, 1, "manual").',
-            'relacion_aprendida("JavaScript", "React", 0.90, 1, "manual").',
-            'relacion_aprendida("SQL", "PostgreSQL", 0.88, 1, "manual").'
+            '% Formato: relacion_co_ocurrencia(Habilidad1, Habilidad2, Confianza, Frecuencia)',
+            "relacion_co_ocurrencia('Python', 'Django', 0.85, 1).",
         ])
+
+    print(f"🔗 Relaciones combinadas: {len(relaciones_sql)} PostgreSQL + {len(relaciones_prolog)} Prolog = {len(lineas_relaciones)} total")
 
     # -------------------------
     # POSTULACIONES
@@ -157,7 +210,7 @@ def generar_hechos():
     # EMPRESA (opcional, para búsquedas semánticas)
     # -------------------------
     empresas = db.execute(text("""
-        SELECT id_empresa, nombre, rubro, ciudad, provincia
+        SELECT id_empresa, nombre, direccion, ciudad, provincia
         FROM empresa
         WHERE activa = true
     """)).fetchall()
@@ -165,10 +218,10 @@ def generar_hechos():
     for emp in empresas:
         lineas_hechos.append(
             f'empresa({emp.id_empresa}, "{limpiar_y_formatear(emp.nombre)}", '
-            f'"{limpiar_y_formatear(emp.rubro)}", "{limpiar_y_formatear(emp.ciudad)}", '
+            f'"{limpiar_y_formatear(emp.direccion)}", "{limpiar_y_formatear(emp.ciudad)}", '
             f'"{limpiar_y_formatear(emp.provincia)}").'
         )
-
+    
     # -------------------------
     # EMPRESA_ACTIVIDAD (opcional)
     # -------------------------
@@ -257,7 +310,8 @@ def generar_hechos():
         "reglas_hechos": len(lineas_hechos),
         "reglas_ofertas": len(lineas_ofertas),
         "reglas_relaciones": len(lineas_relaciones),
-        "reglas_postulaciones": len(lineas_postulaciones)
+        "reglas_postulaciones": len(lineas_postulaciones),
+        "relaciones_combinadas": len(lineas_relaciones)
     }
 
 

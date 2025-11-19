@@ -11,6 +11,10 @@ from app.empresas.models import Empresa
 from app.autenticacion.models import Usuario
 from app.ofertas.models import OfertaEmpleo, OfertaActividad
 from app.actividades.models import Actividad
+from app.relaciones.models import RelacionAprendida
+from app.postulaciones.models import Postulacion
+from app.ofertas.models import OfertaEmpleo, OfertaActividad
+from app.actividades.models import Actividad, PersonaActividad, EmpresaActividad
 
 # Importar routers
 from app.personas.routes import router as personas_router
@@ -19,7 +23,8 @@ from app.autenticacion.routes import router as auth_router
 from app.actividades.routes import router as actividades_router
 from app.ofertas.routes import router as ofertas_router
 from app.matching.routes import router as matching_router
-
+from app.relaciones.routes import router as relaciones_router
+from app.postulaciones.routes import router as postulaciones_router
 
 # -------------------------------------------------------------------------
 # Crear tablas automáticamente si no existen
@@ -30,6 +35,10 @@ Usuario.metadata.create_all(bind=engine)
 OfertaEmpleo.metadata.create_all(bind=engine)
 OfertaActividad.metadata.create_all(bind=engine)
 Actividad.metadata.create_all(bind=engine)
+PersonaActividad.metadata.create_all(bind=engine)
+EmpresaActividad.metadata.create_all(bind=engine)
+RelacionAprendida.metadata.create_all(bind=engine)
+Postulacion.metadata.create_all(bind=engine)
 
 # -------------------------------------------------------------------------
 # FASTAPI APP
@@ -63,6 +72,9 @@ app.include_router(auth_router)
 
 # Matching con prefijo estándar
 app.include_router(matching_router, prefix="/api/matching", tags=["Matching"])
+# Aprendizaje
+app.include_router(relaciones_router, prefix="/api/relaciones-aprendidas", tags=["relaciones-aprendidas"] )
+app.include_router(postulaciones_router,prefix="/api/postulaciones", tags=["postulaciones"])
 
 # -------------------------------------------------------------------------
 # RUTAS BÁSICAS

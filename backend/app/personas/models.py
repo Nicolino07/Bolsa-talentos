@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean
 from app.database import Base
-from sqlalchemy.orm import relationship
 from pydantic import BaseModel, validator, field_serializer
 from typing import Optional
 from datetime import date, datetime
@@ -22,8 +21,6 @@ class Persona(Base):
     telefono = Column(String(30))
     activa = Column(Boolean, default=True)
 
-    # RELACIÓN CORRECTA
-    actividades = relationship("PersonaActividad", back_populates="persona")
 
     def __repr__(self):
         return f"Persona({self.dni}: {self.nombre} {self.apellido})"

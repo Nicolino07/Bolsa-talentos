@@ -1,12 +1,36 @@
+
+% =============================================
+% CONFIGURACIÓN DE UMBRALES (VARIABLES GLOBALES)
+% =============================================
+
+% UMBRAL_MINIMO_NIVEL: Nivel minimo de habilidad para generar recomendaciones
+% 1 = Principiante, 2 = Intermedio, 3 = Avanzado, 4 = Experto
+:- dynamic umbral_minimo_nivel/1.
+umbral_minimo_nivel(1).  % Incluye desde Principiante
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UMBRAL_MINIMO_CONFIANZA: Confianza minima para mostrar recomendaciones
+% 0.0 a 1.0 (0% a 100%)
+:- dynamic umbral_minimo_confianza/1.
+umbral_minimo_confianza(0.15).  % 15% de confianza minima
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FACTOR_ATENUACION: Reduce la confianza base de las relaciones
+% Para ser mas conservadores en las recomendaciones
+:- dynamic factor_atenuacion/1.
+factor_atenuacion(0.9).  % Reduce 10% la confianza original
+
+
+% =============================================
+% REGLAS PRINCIPALES DE MATCHING (EXISTENTES)
+% =============================================
+
 % "constantes"
 nivel_valor("principiante", 1).
 nivel_valor("intermedio", 2).
 nivel_valor("avanzado", 3).
 nivel_valor("experto", 4).
 
-
-% Fórmula, mas valor para el nivel de aprendizaje(*20) y menos para los años de experiencia(*5)
-% Ej: intermedio(2) + 4 años = 40 + 20 = 60
 % Cálculo de puntaje
 puntaje_actividad(NivelPersona, Anios, NivelReq, Puntaje) :-
     nivel_valor(NivelPersona, VP),
@@ -14,46 +38,12 @@ puntaje_actividad(NivelPersona, Anios, NivelReq, Puntaje) :-
     VP >= VR,
     Puntaje is (VP * 20) + (Anios * 5).
 
-
-% 0 puntos si se tiene menos nivel del especificado
 puntaje_actividad(NivelPersona, _, NivelReq, 0) :-
     nivel_valor(NivelPersona, VP),
     nivel_valor(NivelReq, VR),
     VP < VR.
 
-
-
-puntajes_parciales_por_oferta(Dni, IdOferta, ListaPuntajes) :-
-    findall(P, (
-        oferta_actividad(IdOferta, IdAct, NivelReq), % Encuentra todos los requisitos de la oferta
-        ( persona_actividad(Dni, IdAct, NivelPersona, Anios) % Verifica si la persona tiene esa actividad
-          -> puntaje_actividad(NivelPersona, Anios, NivelReq, P)
-          ;  P = 0 % Si la tiene, calcula el puntaje (P), si no P=0
-        )
-    ), ListaPuntajes). % Recolecta todos los puntajes (P) en ListaPuntajes
-
-% suma todos los puntajes=
-suma_lista([], 0).
-suma_lista([H|T], S) :- suma_lista(T, R), S is H + R.
-
-
-% Normalización = Convierte la suma de los puntajes obtenidos en un porcentaje de ajuste (Score).
-normalizar_puntaje(Suma, NReq, Score) :-
-    ( NReq =:= 0 -> Score = 0
-    ; MaxPosible is 100 * NReq,  % Puntaje maximo mas realista
-      Score is (Suma / MaxPosible) * 100  % Convertir a porcentaje
-    ).
-
-% Cuenta cuantas actividades requiere una oferta
-contar_requisitos(IdOferta, N) :-
-    findall(IdAct, oferta_actividad(IdOferta, IdAct, _), L),
-    length(L, N).
-
-% Verifica si la oferta está marcada como activa
-oferta_activa(IdOferta) :-
-    oferta(IdOferta, _, _, true).
-
-% Solo recomienda si el Score es mayor a cero.
+% Sistema de recomendaciones principal
 recomendacion(Dni, IdOferta, Score) :-
     oferta_activa(IdOferta),
     contar_requisitos(IdOferta, NReq),
@@ -62,16 +52,175 @@ recomendacion(Dni, IdOferta, Score) :-
     normalizar_puntaje(Suma, NReq, Score),
     Score > 0.
 
-% Este predicado ejecuta la recomendación para todas las ofertas activas, las clasifica y devuelve las K mejores
-recomendaciones_top(Dni, K, Resultado) :-
-    findall([Score, IdOferta], recomendacion(Dni, IdOferta, Score), Pairs),
-    sort(0, @>=, Pairs, Sorted),
-    take_k(Sorted, K, Resultado).
+% =============================================
+% SISTEMA DE APRENDIZAJE AUTOMÁTICO
+% =============================================
 
+% Aprender relaciones de co-ocurrencia
+aprender_co_ocurrencia :-
+    format(user_error, "🎓 Aprendiendo co-ocurrencias...~n", []),
+    
+    % Limpiar relaciones anteriores
+    retractall(relacion_co_ocurrencia(_, _, _, _)),
+    
+    % Encontrar todas las combinaciones de habilidades por persona
+    findall([H1, H2, DNI], (
+        persona_actividad(DNI, IdAct1, _, _),
+        persona_actividad(DNI, IdAct2, _, _),
+        IdAct1 \= IdAct2,
+        actividad(IdAct1, H1, _, _, _),
+        actividad(IdAct2, H2, _, _, _)
+    ), TodosPares),
+    
+    % Procesar frecuencias
+    procesar_frecuencias_co_ocurrencia(TodosPares, Frecuencias),
+    
+    % Guardar relaciones aprendidas
+    forall(member([H1, H2, Frec, Conf], Frecuencias), (
+        assertz(relacion_co_ocurrencia(H1, H2, Conf, Frec))
+    )),
+    
+    length(Frecuencias, Total),
+    format(user_error, "✅ Co-ocurrencias aprendidas: ~d relaciones~n", [Total]).
 
-% Toma los primeros K elementos de la lista ordenada, generando la lista final de resultados.
+% Procesar frecuencias y calcular confianzas
+procesar_frecuencias_co_ocurrencia(Pares, Resultados) :-
+    findall([H1, H2, Frec], (
+        member([H1, H2, _], Pares),
+        count_occurrences(Pares, [H1, H2, _], Frec)
+    ), FrecuenciasCrudas),
+    
+    sort(FrecuenciasCrudas, FrecuenciasUnicas),
+    
+    findall([H1, H2, Frec, Conf], (
+        member([H1, H2, Frec], FrecuenciasUnicas),
+        Frec >= 1,
+        calcular_confianza_co_ocurrencia(H1, Frec, Conf)
+    ), Resultados).
+
+calcular_confianza_co_ocurrencia(Habilidad, Frecuencia, Confianza) :-
+    findall(DNI, (
+        persona_actividad(DNI, IdAct, _, _),
+        actividad(IdAct, Habilidad, _, _, _)
+    ), PersonasConHabilidad),
+    length(PersonasConHabilidad, TotalPersonas),
+    
+    (TotalPersonas > 0 ->
+        Confianza is min(0.95, Frecuencia / TotalPersonas)
+    ; Confianza = 0.5).
+
+% =============================================
+% BÚSQUEDA SEMÁNTICA
+% =============================================
+
+buscar_semantica(Consulta, Resultados) :-
+    downcase_atom(Consulta, ConsultaLower),
+    
+    findall([PuntajeTotal, IdAct, Nombre, Area], (
+        actividad(IdAct, Nombre, Area, Especialidad, _),
+        calcular_relevancia_semantica(ConsultaLower, Nombre, Area, Especialidad, PuntajeTotal),
+        PuntajeTotal > 0.1
+    ), Todos),
+    
+    sort(0, @>=, Todos, Ordenados),
+    take_k(Ordenados, 20, Resultados).
+
+calcular_relevancia_semantica(Consulta, Nombre, Area, Especialidad, PuntajeTotal) :-
+    calcular_similitud_texto(Consulta, Nombre, PNombre),
+    (Area \= '' -> calcular_similitud_texto(Consulta, Area, PArea); PArea = 0),
+    (Especialidad \= '' -> calcular_similitud_texto(Consulta, Especialidad, PEsp); PEsp = 0),
+    encontrar_mejor_relacion_aprendida(Consulta, Nombre, PRel),
+    PuntajeTotal is (PNombre * 0.5 + PArea * 0.25 + PEsp * 0.15 + PRel * 0.1).
+
+encontrar_mejor_relacion_aprendida(Consulta, NombreActividad, MejorConfianza) :-
+    findall(Conf, (
+        (relacion_co_ocurrencia(Consulta, NombreActividad, Conf, _);
+         relacion_co_ocurrencia(NombreActividad, Consulta, Conf, _))
+    ), Confianzas),
+    (Confianzas = [] -> MejorConfianza = 0; max_list(Confianzas, MejorConfianza)).
+
+% =============================================
+% RECOMENDACIONES INTELIGENTES
+% =============================================
+
+recomendaciones_habilidades(DNI, Recomendaciones) :-
+    findall([Confianza, Habilidad, Razon], (
+        recomendacion_habilidad_inteligente(DNI, Habilidad, Confianza, Razon),
+
+        umbral_minimo_confianza(UmbralConfianza),
+        Confianza >= UmbralConfianza
+        
+    ), Todas),
+    sort(0, @>=, Todas, Ordenadas),
+    take_k(Ordenadas, 10, Recomendaciones).
+
+recomendacion_habilidad_inteligente(DNI, Habilidad, Confianza, co_ocurrencia) :-
+    persona_actividad(DNI, IdActBase, NivelBase, _),
+    nivel_valor(NivelBase, ValorBase),
+
+    %% cuidado con este valor de restricion
+    umbral_minimo_nivel(UmbralNivel),
+    ValorBase >= UmbralNivel,
+
+    actividad(IdActBase, HabilidadBase, _, _, _),
+    relacion_co_ocurrencia(HabilidadBase, Habilidad, ConfianzaBase, _),
+    \+ (persona_actividad(DNI, IdAct, _, _), actividad(IdAct, Habilidad, _, _, _)),
+    Confianza is ConfianzaBase * 0.9.
+
+% =============================================
+% PREDICADOS DE APOYO
+% =============================================
+
+count_occurrences(List, Element, Count) :-
+    findall(1, member(Element, List), Occurrences),
+    length(Occurrences, Count).
+
+suma_lista([], 0).
+suma_lista([H|T], S) :- suma_lista(T, R), S is H + R.
+
+normalizar_puntaje(Suma, NReq, Score) :-
+    ( NReq =:= 0 -> Score = 0
+    ; MaxPosible is 100 * NReq,
+      Score is (Suma / MaxPosible) * 100
+    ).
+
+contar_requisitos(IdOferta, N) :-
+    findall(IdAct, oferta_actividad(IdOferta, IdAct, _), L),
+    length(L, N).
+
+oferta_activa(IdOferta) :-
+    oferta(IdOferta, _, _, true).
+
+puntajes_parciales_por_oferta(Dni, IdOferta, ListaPuntajes) :-
+    findall(P, (
+        oferta_actividad(IdOferta, IdAct, NivelReq),
+        ( persona_actividad(Dni, IdAct, NivelPersona, Anios)
+          -> puntaje_actividad(NivelPersona, Anios, NivelReq, P)
+          ;  P = 0
+        )
+    ), ListaPuntajes).
+
 take_k(_, 0, []) :- !.
 take_k([], _, []) :- !.
-take_k([[Score, IdOferta]|T], K, [[Score, IdOferta]|R]) :-
+take_k([H|T], K, [H|R]) :-
     K1 is K - 1,
     take_k(T, K1, R).
+
+calcular_similitud_texto(Texto1, Texto2, Similitud) :-
+    downcase_atom(Texto1, T1),
+    downcase_atom(Texto2, T2),
+    (   T1 == T2 -> Similitud = 1.0
+    ;   sub_atom(T2, _, _, _, T1) -> Similitud = 0.8
+    ;   sub_atom(T1, _, _, _, T2) -> Similitud = 0.8
+    ;   palabras_comunes(T1, T2, Comun, Total),
+        (Total > 0 -> Similitud is Comun / Total; Similitud = 0.1)
+    ).
+
+palabras_comunes(T1, T2, Comun, Total) :-
+    atomic_list_concat(Palabras1, ' ', T1),
+    atomic_list_concat(Palabras2, ' ', T2),
+    intersection(Palabras1, Palabras2, PalabrasComunes),
+    length(PalabrasComunes, Comun),
+    length(Palabras1, Total1),
+    length(Palabras2, Total2),
+    Total is max(Total1, Total2).

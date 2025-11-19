@@ -6,6 +6,7 @@ import OfertaForm from "../OfertaForm";
 import GestionOfertas from "../GestionOfertas";
 import "../../styles/FormStyles.css";
 import RecomendarEmpleo from "./RecomendarEmpleo";
+import RecomendarHabilidades from "../RecomendarHabilidades";
 
 function PerfilPersona({ usuario, onLogout }) {
   const [seccion, setSeccion] = useState("info");
@@ -26,6 +27,8 @@ function PerfilPersona({ usuario, onLogout }) {
         {seccion === "info" && <InfoPersona usuario={usuario} />}
         {seccion === "mis-actividades" && <MisActividades usuario={usuario} tipo="persona" />}
         {seccion === "recomendaciones" && <RecomendarEmpleo usuario={usuario} />}
+
+        {seccion === "recomendar-habilidades" && <RecomendarHabilidades usuario={usuario} />}
 
         {seccion === "crear-oferta" && (
           <OfertaForm 

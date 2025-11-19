@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   db:
     image: postgres:15
     container_name: bolsa_talentos_db
@@ -45,10 +44,14 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - prolog_data:/app/data   # ← VOLUMEN EN /app/data
+      - ./backend/app/prolog/data:/app/data   # ← VOLUMEN LOCAL COMPARTIDO
     networks:
       - bolsa_net
     restart: unless-stopped
+    # Agregar dependencia y healthcheck
+    depends_on:
+      db:
+        condition: service_healthy
 
   backend:
     build: ./backend
@@ -64,8 +67,9 @@ services:
       DB_PORT: 5432
       DATABASE_URL: postgresql://postgres:postgres1234@db:5432/bolsa_talentos
       PROLOG_URL: http://prolog-engine:4000
+      BACKEND_URL: http://backend:3000
     volumes:
-      - prolog_data:/app/prolog_data   # ← MISMO VOLUMEN, DIFERENTE RUTA
+      - ./backend/app/prolog/data:/app/prolog_data   # ← MISMA CARPETA LOCAL
     networks:
       - bolsa_net
     depends_on:
@@ -87,7 +91,7 @@ services:
 
 volumes:
   db_data:
-  prolog_data:   # ← VOLUMEN COMPARTIDO
 
 networks:
   bolsa_net:
+    driver: bridge

@@ -112,4 +112,33 @@ class MotorProlog:
         except Exception as e:
             return {"error": str(e)}
         
-        
+    def recomendaciones_habilidades(self, dni: int):
+        """Obtener recomendaciones de habilidades inteligentes"""
+        try:
+            url = f"{self.prolog_url}/recomendaciones_habilidades?dni={dni}"
+            print(f"🔍 Buscando recomendaciones para DNI: {dni}")
+            
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            
+            resultado = r.json()
+            print(f"✅ Recomendaciones obtenidas: {len(resultado.get('recomendaciones', []))}")
+            
+            return resultado
+            
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Error de conexión con Prolog: {e}")
+            return {
+                "status": "error",
+                "message": f"No se pudo conectar con el servicio de recomendaciones: {e}",
+                "dni": dni,
+                "recomendaciones": []
+            }
+        except Exception as e:
+            print(f"💥 Error obteniendo recomendaciones: {e}")
+            return {
+                "status": "error",
+                "message": f"Error en el servicio de recomendaciones: {e}",
+                "dni": dni,
+                "recomendaciones": []
+            }
