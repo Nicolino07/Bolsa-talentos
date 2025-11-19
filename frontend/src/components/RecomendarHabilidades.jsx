@@ -151,7 +151,7 @@ const RecomendarHabilidades = ({ usuario }) => {
   return (
     <section className="form-container">
       <div className="form-header">
-        <h2 className="form-titulo">🧠 Habilidades Recomendadas</h2>
+        <h2 className="form-titulo">🧠 Empleos Recomendados</h2>
         <p className="form-subtitulo">
           Basado en aprendizaje automático de co-ocurrencias
         </p>

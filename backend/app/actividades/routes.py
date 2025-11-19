@@ -7,6 +7,13 @@ from app.personas.models import Persona
 from app.empresas.models import Empresa
 from pydantic import BaseModel
 from typing import List, Optional
+from app.ofertas.models import OfertaActividad ,OfertaEmpleo
+from app.prolog.motor import MotorProlog
+
+
+prolog = MotorProlog()
+
+
 
 router = APIRouter(prefix="/actividades", tags=["actividades"])
 
@@ -449,7 +456,7 @@ async def ejecutar_aprendizaje(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en sistema de aprendizaje: {str(e)}")
     
-    
+
 @router.get("/busqueda/semantica")
 async def busqueda_semantica(consulta: str):
     """Búsqueda semántica de actividades"""
@@ -460,178 +467,68 @@ async def busqueda_semantica(consulta: str):
     except Exception as e:
         raise HTTPException(500, f"Error en búsqueda semántica: {str(e)}")
 
-@router.get("/recomendaciones/habilidades/{dni}")
-async def obtener_recomendaciones_habilidades(dni: int):
-    """Obtener recomendaciones de habilidades desde Prolog"""
-    try:
-        PROLOG_URL = "http://prolog-engine:4000"
-        response = requests.get(f"{PROLOG_URL}/recomendaciones_habilidades?dni={dni}", timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Error conectando con Prolog: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error obteniendo recomendaciones: {str(e)}")
+
 
 @router.get("/recomendaciones/habilidades/{dni}")
-async def obtener_recomendaciones_habilidades(dni: int, db: Session = Depends(get_db)):
-    """Obtener recomendaciones de habilidades basadas en relaciones aprendidas"""
+def recomendaciones_habilidades(dni: int, db: Session = Depends(get_db)):
+    """
+    Consulta al motor Prolog → recibe recomendaciones
+    Luego le agrega id_oferta y datos de ofertas reales
+    """
     try:
-        # PRIMERO: Verificar si el usuario existe y obtener sus habilidades
-        from app.personas.models import Persona
-        from .models import PersonaActividad, Actividad
-        
-        persona = db.query(Persona).filter(Persona.dni == dni).first()
-        if not persona:
-            raise HTTPException(status_code=404, detail="Persona no encontrada")
-        
-        # Obtener habilidades actuales de la persona
-        habilidades_persona = db.query(PersonaActividad).filter(
-            PersonaActividad.dni == dni
-        ).all()
-        
-        if not habilidades_persona:
-            return {
-                "dni": dni,
-                "recomendaciones": [],
-                "mensaje": "El usuario no tiene habilidades registradas para generar recomendaciones"
-            }
-        
-        # Obtener IDs de habilidades actuales
-        ids_habilidades_actuales = [pa.id_actividad for pa in habilidades_persona]
-        
-        # Obtener nombres de las habilidades actuales
-        habilidades_nombres = []
-        for id_act in ids_habilidades_actuales:
-            actividad = db.query(Actividad).filter(Actividad.id_actividad == id_act).first()
-            if actividad:
-                habilidades_nombres.append(actividad.nombre)
-        
-        # SEGUNDO: Buscar recomendaciones en relaciones aprendidas
-        from app.relaciones.models import RelacionAprendida
-        
-        recomendaciones = []
-        
-        for habilidad_base in habilidades_nombres:
-            # Buscar relaciones donde esta habilidad sea la base
-            relaciones = db.query(RelacionAprendida).filter(
-                RelacionAprendida.habilidad_base == habilidad_base,
-                RelacionAprendida.activo == True,
-                RelacionAprendida.confianza > 0.3  # Filtro de confianza mínima
-            ).all()
-            
-            for relacion in relaciones:
-                # Verificar que la habilidad objetivo no sea ya una habilidad del usuario
-                if relacion.habilidad_objetivo not in habilidades_nombres:
-                    recomendaciones.append({
-                        "habilidad": relacion.habilidad_objetivo,
-                        "confianza": relacion.confianza,
-                        "razon": "co_ocurrencia",
-                        "habilidad_base": relacion.habilidad_base,
-                        "frecuencia": relacion.frecuencia
-                    })
-        
-        # Ordenar por confianza (mayor primero) y eliminar duplicados
-        recomendaciones_ordenadas = sorted(
-            recomendaciones, 
-            key=lambda x: x["confianza"], 
-            reverse=True
-        )
-        
-        # Eliminar duplicados manteniendo la mayor confianza
-        habilidades_vistas = set()
+        # 1) Llamar al microservicio Prolog
+        resultado = prolog.recomendaciones_habilidades(dni)
+
+        if resultado.get("status") == "error":
+            raise HTTPException(
+                status_code=500,
+                detail=resultado.get("message", "Error consultando Prolog")
+            )
+
         recomendaciones_finales = []
-        
-        for rec in recomendaciones_ordenadas:
-            if rec["habilidad"] not in habilidades_vistas:
-                habilidades_vistas.add(rec["habilidad"])
-                recomendaciones_finales.append(rec)
-        
-        # Limitar a 10 recomendaciones máximo
-        recomendaciones_finales = recomendaciones_finales[:10]
-        
+
+        # 2) Enriquecer con datos reales de la BD
+        for rec in resultado.get("recomendaciones", []):
+            habilidad = rec["habilidad"]
+
+            # Buscar la actividad en DB
+            actividad = db.query(Actividad).filter(
+                Actividad.nombre == habilidad
+            ).first()
+
+            ofertas = []
+
+            if actividad:
+                # Buscar relaciones actividad → oferta
+                relaciones = db.query(OfertaActividad).filter(
+                    OfertaActividad.id_actividad == actividad.id_actividad
+                ).all()
+
+                for rel in relaciones:
+                    oferta = db.query(OfertaEmpleo).filter(
+                        OfertaEmpleo.id_oferta == rel.id_oferta
+                    ).first()
+
+                    if oferta:
+                        ofertas.append({
+                            "id_oferta": oferta.id_oferta,
+                            "titulo": oferta.titulo,
+                            "descripcion": oferta.descripcion
+                        })
+
+            # Completar recomendación
+            recomendaciones_finales.append({
+                "habilidad": rec["habilidad"],
+                "confianza": rec["confianza"],
+                "razon": rec["razon"],
+                "ofertas": ofertas
+            })
+
         return {
             "dni": dni,
-            "habilidades_actuales": habilidades_nombres,
             "recomendaciones": recomendaciones_finales,
-            "total_recomendaciones": len(recomendaciones_finales)
+            "status": "ok"
         }
-        
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Error obteniendo recomendaciones: {str(e)}"
-        )
-@router.post("/cargar-datos-prueba")
-async def cargar_datos_prueba(db: Session = Depends(get_db)):
-    """Cargar datos de prueba en Prolog"""
-    try:
-        PROLOG_URL = "http://prolog-engine:4000"
-        
-        # Datos de prueba para enviar a Prolog
-        datos_prueba = {
-            "hechos": """
-% Personas
-persona(36343051, 'Juan', 'Perez', 'CABA', 'Buenos Aires').
-persona(28765432, 'Maria', 'Gomez', 'CABA', 'Buenos Aires').
-persona(40123456, 'Carlos', 'Lopez', 'Rosario', 'Santa Fe').
-
-% Actividades/Habilidades
-actividad(1, 'React', 'Frontend', 'JavaScript', 'Librería para interfaces de usuario').
-actividad(2, 'JavaScript', 'Frontend', 'Lenguaje', 'Lenguaje de programación web').
-actividad(3, 'Python', 'Backend', 'Lenguaje', 'Lenguaje de programación versátil').
-actividad(4, 'Django', 'Backend', 'Python', 'Framework web de Python').
-actividad(5, 'Java', 'Backend', 'Lenguaje', 'Lenguaje de programación empresarial').
-actividad(6, 'Spring Boot', 'Backend', 'Java', 'Framework para aplicaciones Java').
-
-% Relaciones Persona-Actividad
-persona_actividad(36343051, 1, 'AVANZADO', 3).
-persona_actividad(36343051, 2, 'INTERMEDIO', 2).
-persona_actividad(36343051, 3, 'PRINCIPIANTE', 1).
-
-persona_actividad(28765432, 1, 'INTERMEDIO', 2).
-persona_actividad(28765432, 3, 'AVANZADO', 4).
-persona_actividad(28765432, 4, 'INTERMEDIO', 2).
-
-persona_actividad(40123456, 5, 'AVANZADO', 5).
-persona_actividad(40123456, 6, 'INTERMEDIO', 3).
-persona_actividad(40123456, 3, 'INTERMEDIO', 2).
-""",
-            "ofertas": """
-% Ofertas laborales
-oferta(1, 1, 'Desarrollador React Senior', true).
-oferta(2, 2, 'Backend Python Developer', true).
-
-% Relaciones Oferta-Actividad
-oferta_actividad(1, 1, 'REQUERIDA').
-oferta_actividad(1, 2, 'REQUERIDA').
-oferta_actividad(2, 3, 'REQUERIDA').
-oferta_actividad(2, 4, 'DESEABLE').
-"""
-        }
-        
-        # Enviar datos a Prolog
-        response = requests.post(
-            f"{PROLOG_URL}/upload_hechos",
-            files={
-                'hechos': ('hechos.pl', datos_prueba['hechos']),
-                'ofertas': ('ofertas.pl', datos_prueba['ofertas'])
-            },
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            # Recargar hechos en Prolog
-            reload_response = requests.post(f"{PROLOG_URL}/reload_hechos", timeout=10)
-            
-            return {
-                "status": "success",
-                "message": "Datos de prueba cargados en Prolog",
-                "upload": response.json(),
-                "reload": reload_response.json() if reload_response.status_code == 200 else "reload_failed"
-            }
-        else:
-            raise HTTPException(500, "Error cargando datos en Prolog")
-            
-    except Exception as e:
-        raise HTTPException(500, f"Error cargando datos de prueba: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

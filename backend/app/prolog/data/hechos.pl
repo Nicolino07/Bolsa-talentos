@@ -31,6 +31,7 @@ persona_actividad(25999888, 1, "intermedio", 1).
 persona_actividad(37364223, 21, "avanzado", 5).
 persona_actividad(37364223, 1, "intermedio", 3).
 persona_actividad(37364223, 22, "principiante", 0).
+persona_actividad(36343051, 7, "intermedio", 0).
 actividad(1, "Desarrollador Web", "Tecnologia", "Frontend/backend", "Diseno Y Programacion De Sitios Web").
 actividad(2, "Enfermero Profesional", "Salud", "Clinica", "Atencion De Pacientes En Hospitales").
 actividad(3, "Guia De Turismo", "Turismo", "Patagonia", "Acompanamiento Y Guiado De Grupos Turisticos").
