@@ -9,7 +9,7 @@ from app.matching.servicio import generar_hechos
 from app.prolog.motor import MotorProlog
 
 router = APIRouter()
-
+db: Session = Depends(get_db)
 
 @router.post("/generar-hechos", summary="Regenerar hechos.pl desde la base")
 def generar_hechos_endpoint(db: Session = Depends(get_db)):
@@ -17,7 +17,8 @@ def generar_hechos_endpoint(db: Session = Depends(get_db)):
 
 
 @router.get("/matching/{dni}", summary="Obtener recomendaciones para una persona")
-def matching(dni: int):
+def matching(dni: int, db: Session = Depends(get_db)): 
+    generar_hechos(db)  # recargar base de conocimiento
     motor = MotorProlog()
     return motor.buscar_recomendaciones(dni)
 

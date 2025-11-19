@@ -208,22 +208,46 @@ const MisActividades = ({ usuario, tipo }) => {
     }
   };
 
+  // NOTA: AQUÍ ESTÁ LA FUNCIÓN ACTUALIZADA PARA ELIMINAR ACTIVIDADES
   const eliminarActividad = async (id_actividad) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta actividad?')) {
       return;
     }
 
     try {
-      // Nota: Necesitarías crear un endpoint DELETE en el backend
-      // Por ahora, solo eliminamos del estado local
-      setMisActividades(prev => 
-        prev.filter(actividad => actividad.id_actividad !== id_actividad)
-      );
+      setLoading(true);
+      const API_BASE_URL = 'http://localhost:3000';
+      let url = '';
+
+      if (esPersona) {
+        url = `${API_BASE_URL}/api/actividades/persona/${usuario.dni}/${id_actividad}`;
+      } else if (esEmpresa) {
+        url = `${API_BASE_URL}/api/actividades/empresa/${usuario.id_empresa}/${id_actividad}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error('Error eliminando actividad: ' + errorText);
+      }
+
+      // Recargar la lista de actividades después de eliminar
+      await cargarMisActividades();
       
-      alert('Actividad eliminada');
+      setError('');
+      alert('✅ Actividad eliminada exitosamente');
+
     } catch (error) {
-      console.error('Error eliminando actividad:', error);
-      setError('Error al eliminar la actividad');
+      console.error('❌ Error eliminando actividad:', error);
+      setError(error.message || 'Error al eliminar la actividad');
+    } finally {
+      setLoading(false);
     }
   };
 

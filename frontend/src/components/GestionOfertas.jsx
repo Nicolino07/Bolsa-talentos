@@ -2,62 +2,56 @@ import React, { useState, useEffect } from 'react';
 import OfertaForm from './OfertaForm';
 import '../styles/OfertaForm.css';
 
-const GestionOfertas = ({ empresaId }) => {
+const GestionOfertas = ({ empresaId, usuario }) => {
   const [vista, setVista] = useState('lista');
   const [ofertas, setOfertas] = useState([]);
   const [ofertaEditando, setOfertaEditando] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  console.log("👤 Usuario en GestionOfertas:", usuario);
   console.log("🏢 Empresa ID en GestionOfertas:", empresaId, "Tipo:", typeof empresaId);
 
-  // Cargar ofertas al montar el componente
+  // Determinar si es empresa o persona
+  const esEmpresa = usuario?.id_empresa;
+  const esPersona = usuario?.dni;
+
   useEffect(() => {
     cargarOfertas();
-  }, [empresaId]);
+  }, [empresaId, usuario]);
 
   const cargarOfertas = async () => {
     try {
       setLoading(true);
       const API_BASE_URL = 'http://localhost:3000';
       
-      console.log("🔄 Cargando ofertas para empresa:", empresaId);
+      let url = `${API_BASE_URL}/api/ofertas/`;
       
-      // Cargar TODAS las ofertas
-      const response = await fetch(`${API_BASE_URL}/api/ofertas/`);
+      // Usar endpoint específico según el tipo de usuario
+      if (esEmpresa) {
+        console.log("🔄 Cargando ofertas para EMPRESA:", usuario.id_empresa);
+        url = `${API_BASE_URL}/api/ofertas/empresa/${usuario.id_empresa}`;
+      } else if (esPersona) {
+        console.log("🔄 Cargando ofertas para PERSONA:", usuario.dni);
+        url = `${API_BASE_URL}/api/ofertas/persona/${usuario.dni}`;
+      } else {
+        console.log("🔄 Cargando TODAS las ofertas (sin filtro)");
+      }
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Error al cargar las ofertas');
       }
       
-      const todasLasOfertas = await response.json();
-      console.log("📦 Todas las ofertas crudas:", todasLasOfertas);
+      const ofertasCargadas = await response.json();
+      console.log("📦 Ofertas cargadas:", ofertasCargadas);
       
-      // Convertir empresaId a número para comparación
-      const empresaIdNum = Number(empresaId);
-      
-      // Filtrar SOLO las ofertas de esta empresa
-      const ofertasEmpresa = todasLasOfertas.filter(oferta => {
-        const ofertaEmpresaId = Number(oferta.id_empresa);
-        const esDeEstaEmpresa = ofertaEmpresaId === empresaIdNum;
-        
-        console.log(`🔍 Oferta ${oferta.id_oferta}: 
-          - empresaId en oferta: ${ofertaEmpresaId} (${typeof ofertaEmpresaId})
-          - empresaId logueada: ${empresaIdNum} (${typeof empresaIdNum})
-          - ¿Coincide?: ${esDeEstaEmpresa}
-        `);
-        
-        return esDeEstaEmpresa;
-      });
-      
-      console.log(`✅ Ofertas filtradas para empresa ${empresaId}:`, ofertasEmpresa);
-      setOfertas(ofertasEmpresa);
+      setOfertas(ofertasCargadas);
       
     } catch (error) {
       console.error('Error:', error);
       setError('No se pudieron cargar las ofertas');
-      
-      // En caso de error, mostrar array vacío para que no muestre ofertas de otras empresas
       setOfertas([]);
     } finally {
       setLoading(false);
@@ -65,17 +59,11 @@ const GestionOfertas = ({ empresaId }) => {
   };
 
   const handleOfertaCreada = (nuevaOferta) => {
-    // Asegurarnos de que la nueva oferta tenga el empresaId correcto
-    const ofertaConEmpresa = {
-      ...nuevaOferta,
-      id_empresa: Number(empresaId)
-    };
-    setOfertas(prev => [ofertaConEmpresa, ...prev]);
+    setOfertas(prev => [nuevaOferta, ...prev]);
     setVista('lista');
   };
 
   const handleEliminarOferta = async (idOferta) => {
-    // Verificar que la oferta pertenece a esta empresa antes de eliminar
     const ofertaAEliminar = ofertas.find(o => o.id_oferta === idOferta);
     
     if (!ofertaAEliminar) {
@@ -83,7 +71,13 @@ const GestionOfertas = ({ empresaId }) => {
       return;
     }
 
-    if (Number(ofertaAEliminar.id_empresa) !== Number(empresaId)) {
+    // Verificar permisos según tipo de usuario
+    if (esEmpresa && Number(ofertaAEliminar.id_empresa) !== Number(usuario.id_empresa)) {
+      alert('❌ No tienes permisos para eliminar esta oferta');
+      return;
+    }
+    
+    if (esPersona && ofertaAEliminar.persona_dni !== usuario.dni) {
       alert('❌ No tienes permisos para eliminar esta oferta');
       return;
     }
@@ -111,7 +105,6 @@ const GestionOfertas = ({ empresaId }) => {
   };
 
   const toggleActivaOferta = async (idOferta, activaActual) => {
-    // Verificar que la oferta pertenece a esta empresa antes de editar
     const ofertaAEditar = ofertas.find(o => o.id_oferta === idOferta);
     
     if (!ofertaAEditar) {
@@ -119,40 +112,66 @@ const GestionOfertas = ({ empresaId }) => {
       return;
     }
 
-    if (Number(ofertaAEditar.id_empresa) !== Number(empresaId)) {
+    // Verificar permisos según tipo de usuario
+    if (esEmpresa && Number(ofertaAEditar.id_empresa) !== Number(usuario.id_empresa)) {
+      alert('❌ No tienes permisos para editar esta oferta');
+      return;
+    }
+    
+    if (esPersona && ofertaAEditar.persona_dni !== usuario.dni) {
       alert('❌ No tienes permisos para editar esta oferta');
       return;
     }
 
     try {
       const API_BASE_URL = 'http://localhost:3000';
+      
+      // Enviar todos los campos requeridos 
+      const datosActualizacion = {
+        titulo: ofertaAEditar.titulo,
+        descripcion: ofertaAEditar.descripcion,
+        activa: !activaActual
+      };
+
+      console.log('🔄 Actualizando oferta:', datosActualizacion);
+
       const response = await fetch(`${API_BASE_URL}/api/ofertas/${idOferta}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          activa: !activaActual
-        }),
+        body: JSON.stringify(datosActualizacion),
       });
 
-      if (response.ok) {
-        const ofertaActualizada = await response.json();
-        setOfertas(prev => prev.map(oferta =>
-          oferta.id_oferta === idOferta ? ofertaActualizada : oferta
-        ));
-      } else {
-        throw new Error('Error al actualizar la oferta');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error respuesta:', errorText);
+        throw new Error(`Error al actualizar la oferta: ${errorText}`);
       }
+
+      const ofertaActualizada = await response.json();
+      console.log('✅ Oferta actualizada:', ofertaActualizada);
+      
+      setOfertas(prev => prev.map(oferta =>
+        oferta.id_oferta === idOferta ? ofertaActualizada : oferta
+      ));
+      
+      alert(`✅ Oferta ${!activaActual ? 'activada' : 'desactivada'} correctamente`);
+      
     } catch (error) {
       console.error('Error:', error);
-      alert('❌ Error al actualizar el estado de la oferta');
+      alert('❌ Error al actualizar el estado de la oferta: ' + error.message);
     }
   };
 
   const handleEditarOferta = (oferta) => {
-    // Verificar que la oferta pertenece a esta empresa antes de editar
-    if (Number(oferta.id_empresa) !== Number(empresaId)) {
+    // Verificar permisos según tipo de usuario
+    if (esEmpresa && Number(oferta.id_empresa) !== Number(usuario.id_empresa)) {
+      alert('❌ No tienes permisos para editar esta oferta');
+      return;
+    }
+    
+    if (esPersona && oferta.persona_dni !== usuario.dni) {
       alert('❌ No tienes permisos para editar esta oferta');
       return;
     }
@@ -161,30 +180,112 @@ const GestionOfertas = ({ empresaId }) => {
     setVista('editar');
   };
 
+  
   // Componente para editar oferta
   const EditarOferta = ({ oferta, onCancelar }) => {
-    // Verificación adicional de seguridad
-    if (Number(oferta.id_empresa) !== Number(empresaId)) {
-      return (
-        <div className="error-message">
-          <strong>Error de permisos:</strong> No tienes acceso a esta oferta
-        </div>
-      );
-    }
-
     const [formData, setFormData] = useState({
       titulo: oferta.titulo || '',
       descripcion: oferta.descripcion || '',
       activa: oferta.activa !== undefined ? oferta.activa : true
     });
+    const [actividadesSeleccionadas, setActividadesSeleccionadas] = useState([]);
+    const [actividadesDisponibles, setActividadesDisponibles] = useState([]);
+    const [nuevaActividad, setNuevaActividad] = useState({
+      id_actividad: '',
+      nivel_requerido: 'INTERMEDIO'
+    });
     const [loadingEdit, setLoadingEdit] = useState(false);
     const [errorEdit, setErrorEdit] = useState('');
+    const [cargandoActividades, setCargandoActividades] = useState(true);
+
+    // Cargar actividades disponibles y las actividades actuales de la oferta
+    useEffect(() => {
+      cargarActividades();
+    }, []);
+
+    const cargarActividades = async () => {
+      try {
+        setCargandoActividades(true);
+        const API_BASE_URL = 'http://localhost:3000';
+        
+        // Cargar actividades disponibles
+        const response = await fetch(`${API_BASE_URL}/api/actividades/?skip=0&limit=100`);
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar actividades');
+        }
+        
+        const actividades = await response.json();
+        setActividadesDisponibles(actividades);
+        
+        // Cargar actividades actuales de la oferta
+        const ofertaResponse = await fetch(`${API_BASE_URL}/api/ofertas/${oferta.id_oferta}`);
+        
+        if (ofertaResponse.ok) {
+          const ofertaCompleta = await ofertaResponse.json();
+          setActividadesSeleccionadas(ofertaCompleta.actividades || []);
+        }
+        
+      } catch (error) {
+        console.error('Error cargando actividades:', error);
+        setErrorEdit('Error al cargar las actividades');
+      } finally {
+        setCargandoActividades(false);
+      }
+    };
+
+    const agregarActividad = () => {
+      if (!nuevaActividad.id_actividad) {
+        setErrorEdit('Selecciona una actividad');
+        return;
+      }
+
+      const actividadSeleccionada = actividadesDisponibles.find(
+        a => a.id_actividad === parseInt(nuevaActividad.id_actividad)
+      );
+
+      const existe = actividadesSeleccionadas.some(
+        a => a.id_actividad === actividadSeleccionada.id_actividad
+      );
+
+      if (existe) {
+        setErrorEdit('Esta actividad ya fue agregada');
+        return;
+      }
+
+      if (actividadSeleccionada) {
+        setActividadesSeleccionadas(prev => [
+          ...prev,
+          {
+            ...actividadSeleccionada,
+            nivel_requerido: nuevaActividad.nivel_requerido
+          }
+        ]);
+        setNuevaActividad({
+          id_actividad: '',
+          nivel_requerido: 'INTERMEDIO'
+        });
+        setErrorEdit('');
+      }
+    };
+
+    const eliminarActividad = (index) => {
+      setActividadesSeleccionadas(prev => prev.filter((_, i) => i !== index));
+    };
 
     const handleInputChange = (e) => {
       const { name, value, type, checked } = e.target;
       setFormData(prev => ({
         ...prev,
         [name]: type === 'checkbox' ? checked : value
+      }));
+    };
+
+    const handleActividadChange = (e) => {
+      const { name, value } = e.target;
+      setNuevaActividad(prev => ({
+        ...prev,
+        [name]: value
       }));
     };
 
@@ -195,6 +296,8 @@ const GestionOfertas = ({ empresaId }) => {
 
       try {
         const API_BASE_URL = 'http://localhost:3000';
+        
+        // 1. Actualizar la oferta básica
         const response = await fetch(`${API_BASE_URL}/api/ofertas/${oferta.id_oferta}`, {
           method: 'PUT',
           headers: {
@@ -209,6 +312,28 @@ const GestionOfertas = ({ empresaId }) => {
         }
 
         const ofertaActualizada = await response.json();
+        
+        // 2. Actualizar las actividades (eliminar todas y agregar las nuevas)
+        // Primero eliminar actividades existentes
+        await fetch(`${API_BASE_URL}/api/ofertas/${oferta.id_oferta}/actividades/`, {
+          method: 'DELETE'
+        });
+
+        // Luego agregar las nuevas actividades
+        const actividadesPromises = actividadesSeleccionadas.map(actividad =>
+          fetch(`${API_BASE_URL}/api/ofertas/${oferta.id_oferta}/actividades/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id_actividad: actividad.id_actividad,
+              nivel_requerido: actividad.nivel_requerido
+            }),
+          })
+        );
+
+        await Promise.all(actividadesPromises);
         
         // Actualizar la lista
         setOfertas(prev => prev.map(o =>
@@ -241,6 +366,7 @@ const GestionOfertas = ({ empresaId }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="form-busqueda oferta-form">
+          {/* Sección de información básica (igual que antes) */}
           <div className="form-section">
             <h3>Información del Puesto</h3>
             
@@ -288,6 +414,94 @@ const GestionOfertas = ({ empresaId }) => {
             </div>
           </div>
 
+          {/* NUEVA SECCIÓN: Gestión de actividades */}
+          <div className="form-section">
+            <h3>Habilidades y Competencias Requeridas</h3>
+            
+            {cargandoActividades ? (
+              <div className="loading">Cargando actividades...</div>
+            ) : (
+              <>
+                <div className="agregar-actividad">
+                  <div className="campos-actividad">
+                    <div className="campo">
+                      <label>Actividad/Especialidad</label>
+                      <select
+                        name="id_actividad"
+                        value={nuevaActividad.id_actividad}
+                        onChange={handleActividadChange}
+                        disabled={loadingEdit}
+                      >
+                        <option value="">Selecciona una actividad</option>
+                        {actividadesDisponibles.map(actividad => (
+                          <option key={actividad.id_actividad} value={actividad.id_actividad}>
+                            {actividad.nombre} {actividad.area && `- ${actividad.area}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="campo">
+                      <label>Nivel Requerido</label>
+                      <select
+                        name="nivel_requerido"
+                        value={nuevaActividad.nivel_requerido}
+                        onChange={handleActividadChange}
+                        disabled={loadingEdit}
+                      >
+                        <option value="PRINCIPIANTE">Principiante</option>
+                        <option value="INTERMEDIO">Intermedio</option>
+                        <option value="AVANZADO">Avanzado</option>
+                        <option value="EXPERTO">Experto</option>
+                      </select>
+                    </div>
+                    
+                    <div className="campo">
+                      <label>&nbsp;</label>
+                      <button 
+                        type="button" 
+                        onClick={agregarActividad}
+                        className="btn-agregar"
+                        disabled={loadingEdit}
+                      >
+                        Agregar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de actividades agregadas */}
+                {actividadesSeleccionadas.length > 0 && (
+                  <div className="actividades-lista">
+                    <h4>Actividades Agregadas ({actividadesSeleccionadas.length})</h4>
+                    <div className="habilidades-lista">
+                      {actividadesSeleccionadas.map((actividad, index) => (
+                        <div key={index} className="habilidad-item">
+                          <span className="habilidad-texto">
+                            {actividad.nombre}
+                            {actividad.area && <span style={{ opacity: 0.8 }}> - {actividad.area}</span>}
+                            <span className="nivel-requerido">
+                              {actividad.nivel_requerido}
+                            </span>
+                          </span>
+                          <button 
+                            type="button"
+                            onClick={() => eliminarActividad(index)}
+                            className="btn-eliminar"
+                            disabled={loadingEdit}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Información de la oferta */}
           <div className="form-section">
             <h3>Información de la Oferta</h3>
             <div className="info-grid">
@@ -295,7 +509,7 @@ const GestionOfertas = ({ empresaId }) => {
                 <strong>ID Oferta:</strong> {oferta.id_oferta}
               </div>
               <div className="info-item">
-                <strong>Empresa ID:</strong> {oferta.id_empresa}
+                <strong>{esEmpresa ? 'Empresa ID:' : 'Persona DNI:'}</strong> {esEmpresa ? oferta.id_empresa : oferta.persona_dni}
               </div>
               <div className="info-item">
                 <strong>Fecha de publicación:</strong> {new Date(oferta.fecha_publicacion).toLocaleDateString()}
@@ -337,7 +551,6 @@ const GestionOfertas = ({ empresaId }) => {
       </div>
     );
   };
-
   // Componente para lista de ofertas
   const ListaOfertas = () => {
     if (loading) {
@@ -378,8 +591,12 @@ const GestionOfertas = ({ empresaId }) => {
                   <span className="stat-label">Ofertas Activas</span>
                 </div>
                 <div className="stat-card">
-                  <span className="stat-number">{empresaId}</span>
-                  <span className="stat-label">Mi Empresa ID</span>
+                  <span className="stat-number">
+                    {esEmpresa ? usuario.id_empresa : usuario.dni}
+                  </span>
+                  <span className="stat-label">
+                    {esEmpresa ? 'Mi Empresa ID' : 'Mi DNI'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -443,9 +660,13 @@ const GestionOfertas = ({ empresaId }) => {
   return (
     <div className="gestion-ofertas">
       <div className="gestion-header">
-        <h2 className="subtitulo">Mis Ofertas de Empleo</h2>
+        <h2 className="subtitulo">
+          {esEmpresa ? 'Mis Ofertas de Empleo' : 'Mis Ofertas Publicadas'}
+        </h2>
         <div className="empresa-info">
-          <span className="empresa-id">Empresa ID: {empresaId}</span>
+          <span className="empresa-id">
+            {esEmpresa ? `Empresa ID: ${usuario.id_empresa}` : `Persona DNI: ${usuario.dni}`}
+          </span>
         </div>
         
         <div className="gestion-actions">
@@ -472,7 +693,7 @@ const GestionOfertas = ({ empresaId }) => {
         {vista === 'lista' && <ListaOfertas />}
         {vista === 'crear' && (
           <OfertaForm 
-            empresaId={empresaId}
+            usuario={usuario}
             onOfertaCreada={handleOfertaCreada}
             onCancelar={() => setVista('lista')}
           />
@@ -492,3 +713,4 @@ const GestionOfertas = ({ empresaId }) => {
 };
 
 export default GestionOfertas;
+

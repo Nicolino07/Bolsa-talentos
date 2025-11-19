@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const OfertaForm = ({ empresaId, onOfertaCreada, onCancelar }) => {
+const OfertaForm = ({ usuario, onOfertaCreada, onCancelar }) => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -225,22 +225,36 @@ const OfertaForm = ({ empresaId, onOfertaCreada, onCancelar }) => {
     try {
       const API_BASE_URL = 'http://localhost:3000';
       
-      console.log('📤 Creando oferta:', {
-        id_empresa: empresaId,
+      // DEBUG del usuario completo
+      console.log('🔍 USUARIO COMPLETO:', usuario);
+      
+      const datosOferta = {
         titulo: formData.titulo,
-        descripcion: formData.descripcion
-      });
+        descripcion: formData.descripcion,
+        activa: true
+      };
+
+      // DETERMINAR AUTOMÁTICAMENTE según el usuario
+      if (usuario?.id_empresa) {
+        // Es una empresa
+        datosOferta.id_empresa = usuario.id_empresa;
+        console.log('🏢 Creando oferta como EMPRESA');
+      } else if (usuario?.dni) {
+        // Es una persona
+        datosOferta.persona_dni = usuario.dni;
+        console.log('👤 Creando oferta como PERSONA');
+      } else {
+        throw new Error('No se pudo determinar el tipo de usuario');
+      }
+
+      console.log('📤 DATOS FINALES A ENVIAR:', datosOferta);
 
       const ofertaResponse = await fetch(`${API_BASE_URL}/api/ofertas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          id_empresa: empresaId,
-          titulo: formData.titulo,
-          descripcion: formData.descripcion
-        }),
+        body: JSON.stringify(datosOferta),
       });
 
       if (!ofertaResponse.ok) {

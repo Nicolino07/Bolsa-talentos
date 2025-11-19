@@ -244,17 +244,36 @@ export const actualizarEmpresa = async (id_empresa, datosActualizados, token) =>
 };
 
 
-
 /* ==================== OFERTAS ==================== */
 
 export const crearOferta = async (ofertaData, token) => {
+  // Determinar si es empresa o persona y preparar datos correctamente
+  const datosParaEnviar = {
+    titulo: ofertaData.titulo,
+    descripcion: ofertaData.descripcion || "",
+    activa: ofertaData.activa !== undefined ? ofertaData.activa : true,
+    actividades: ofertaData.actividades || []
+  };
+
+  // Agregar el identificador correcto según el tipo
+  if (ofertaData.id_empresa) {
+    datosParaEnviar.id_empresa = ofertaData.id_empresa;
+  } else if (ofertaData.persona_dni) {
+    datosParaEnviar.persona_dni = ofertaData.persona_dni;
+  } else if (ofertaData.dni) {
+    // Si viene como "dni" simple, convertirlo a "persona_dni"
+    datosParaEnviar.persona_dni = ofertaData.dni;
+  }
+
+  console.log("📤 Enviando datos al backend:", datosParaEnviar);
+
   const response = await fetch(`${API_BASE_URL}/api/ofertas/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(ofertaData),
+    body: JSON.stringify(datosParaEnviar),
   });
 
   if (!response.ok) {
@@ -262,18 +281,6 @@ export const crearOferta = async (ofertaData, token) => {
     throw new Error(errorData.detail || 'Error al crear oferta');
   }
 
-  return await response.json();
-};
-
-export const listarOfertas = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/api/ofertas/`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-  });
-  
-  if (!response.ok) throw new Error('Error al obtener ofertas');
   return await response.json();
 };
 

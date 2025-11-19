@@ -9,56 +9,112 @@ from typing import List, Optional
 
 router = APIRouter(prefix="/actividades", tags=["actividades"])
 
-# Schemas
+
+# Schemas para validación y documentación
+
 class ActividadBase(BaseModel):
+    """
+    Esquema base para actividad con campos opcionales para área, especialidad y descripción.
+    """
     nombre: str
     area: Optional[str] = None
     especialidad: Optional[str] = None
     descripcion: Optional[str] = None
 
+
 class ActividadCreate(ActividadBase):
+    """
+    Esquema usado para creación de actividad. Hereda ActividadBase sin cambios.
+    """
     pass
 
+
 class ActividadResponse(ActividadBase):
+    """
+    Esquema respuesta para devolver detalles completos de actividad,
+    incluye el identificador único.
+    """
     id_actividad: int
     
     class Config:
         from_attributes = True
 
+
 class PersonaActividadBase(BaseModel):
+    """
+    Esquema base para asociación persona-actividad, incluyendo nivel y años de experiencia.
+    """
     dni: int
     id_actividad: int
     nivel_experiencia: Optional[str] = None
     años_experiencia: Optional[int] = 0
 
+
 class PersonaActividadCreate(PersonaActividadBase):
+    """
+    Esquema para crear relación persona-actividad. Hereda base sin cambios.
+    """
     pass
 
+
 class EmpresaActividadBase(BaseModel):
+    """
+    Esquema base para asociación empresa-actividad, con especialización opcional.
+    """
     id_empresa: int
     id_actividad: int
     especializacion: Optional[str] = None
 
+
 class EmpresaActividadCreate(EmpresaActividadBase):
+    """
+    Esquema para crear relación empresa-actividad. Hereda base sin cambios.
+    """
     pass
 
-# Endpoints para Actividades (CRUD básico - mismos que antes)
+
+# Endpoints para CRUD de actividades
+
 @router.get("/", response_model=List[ActividadResponse])
 async def listar_actividades(
     skip: int = 0, 
     limit: int = 100, 
     db: Session = Depends(get_db)
 ):
-    """Listar todas las actividades disponibles"""
+    """
+    Listar todas las actividades disponibles con paginación opcional.
+
+    Parámetros:
+    - skip (int): cantidad de registros a omitir para paginar.
+    - limit (int): cantidad máxima de registros a devolver.
+    - db: sesión de base de datos por dependencia.
+
+    Retorna:
+    - Lista de actividades en formato detallado.
+    """
     try:
         actividades = db.query(Actividad).offset(skip).limit(limit).all()
         return actividades
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener actividades: {str(e)}")
 
+
 @router.post("/", response_model=ActividadResponse)
 async def crear_actividad(actividad: ActividadCreate, db: Session = Depends(get_db)):
-    """Crear una nueva actividad"""
+    """
+    Crear una nueva actividad si no existe previamente con el mismo nombre.
+
+    Parámetros:
+    - actividad: datos de la nueva actividad validados por Pydantic.
+    - db: sesión de base de datos por dependencia.
+
+    Retorna:
+    - La actividad creada con su ID.
+    
+    Excepciones:
+    - 400 si el nombre ya existe.
+    - 500 errores del servidor o base de datos.
+    """
     try:
         actividad_existente = db.query(Actividad).filter(Actividad.nombre == actividad.nombre).first()
         if actividad_existente:
@@ -70,7 +126,6 @@ async def crear_actividad(actividad: ActividadCreate, db: Session = Depends(get_
             especialidad=actividad.especialidad,
             descripcion=actividad.descripcion
         )
-        
         db.add(nueva_actividad)
         db.commit()
         db.refresh(nueva_actividad)
@@ -83,31 +138,43 @@ async def crear_actividad(actividad: ActividadCreate, db: Session = Depends(get_
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al crear actividad: {str(e)}")
 
-# Endpoints para Persona-Actividad
+
+# Endpoints para gestión de relación Persona - Actividad
+
 @router.post("/persona", response_model=dict)
 async def agregar_actividad_persona(relacion: PersonaActividadCreate, db: Session = Depends(get_db)):
-    """Agregar una actividad a una persona"""
+    """
+    Asociar una actividad a una persona con nivel y años de experiencia.
+
+    Validaciones:
+    - La persona y la actividad deben existir.
+    - La relación no debe existir previamente.
+    - Nivel de experiencia debe ser uno de: PRINCIPIANTE, INTERMEDIO, AVANZADO, EXPERTO.
+
+    Retorna:
+    - Mensaje indicando éxito.
+    
+    Excepciones:
+    - 404 si persona o actividad no existen.
+    - 400 si relación ya existe o nivel no valido.
+    - 500 errores internos.
+    """
     try:
-        # Verificar que la persona existe
         persona = db.query(Persona).filter(Persona.dni == relacion.dni).first()
         if not persona:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
-        # Verificar que la actividad existe
         actividad = db.query(Actividad).filter(Actividad.id_actividad == relacion.id_actividad).first()
         if not actividad:
             raise HTTPException(status_code=404, detail="Actividad no encontrada")
         
-        # Verificar si ya existe la relación
         relacion_existente = db.query(PersonaActividad).filter(
             PersonaActividad.dni == relacion.dni,
             PersonaActividad.id_actividad == relacion.id_actividad
         ).first()
-        
         if relacion_existente:
             raise HTTPException(status_code=400, detail="La persona ya tiene esta actividad")
         
-        # Validar nivel de experiencia
         niveles_permitidos = ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'EXPERTO']
         if relacion.nivel_experiencia and relacion.nivel_experiencia not in niveles_permitidos:
             raise HTTPException(status_code=400, detail=f"Nivel de experiencia no válido. Use: {', '.join(niveles_permitidos)}")
@@ -131,9 +198,21 @@ async def agregar_actividad_persona(relacion: PersonaActividadCreate, db: Sessio
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al agregar actividad: {str(e)}")
 
+
 @router.get("/persona/{dni}", response_model=List[dict])
 async def obtener_actividades_persona(dni: int, db: Session = Depends(get_db)):
-    """Obtener actividades de una persona específica"""
+    """
+    Obtener las actividades asignadas a una persona.
+
+    Parámetros:
+    - dni: DNI de la persona.
+    - db: sesión de base de datos.
+
+    Retorna:
+    - Lista de actividades con detalles y experiencia.
+    - 404 si persona no encontrada.
+    - 500 en error interno.
+    """
     try:
         persona = db.query(Persona).filter(Persona.dni == dni).first()
         if not persona:
@@ -158,27 +237,79 @@ async def obtener_actividades_persona(dni: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener actividades: {str(e)}")
 
+
+@router.delete("/persona/{dni}/{id_actividad}", response_model=dict)
+async def eliminar_actividad_persona(dni: int, id_actividad: int, db: Session = Depends(get_db)):
+    """
+    Eliminar una actividad asignada a una persona específica.
+
+    Parámetros:
+    - dni: DNI de la persona.
+    - id_actividad: ID de la actividad a eliminar.
+    - db: sesión de base de datos.
+
+    Retorna:
+    - Mensaje de éxito.
+    - Errores 404 si persona, actividad o relación no existen.
+    - 500 en error interno.
+    """
+    try:
+        persona = db.query(Persona).filter(Persona.dni == dni).first()
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada")
+        
+        actividad = db.query(Actividad).filter(Actividad.id_actividad == id_actividad).first()
+        if not actividad:
+            raise HTTPException(status_code=404, detail="Actividad no encontrada")
+        
+        relacion_existente = db.query(PersonaActividad).filter(
+            PersonaActividad.dni == dni,
+            PersonaActividad.id_actividad == id_actividad
+        ).first()
+        
+        if not relacion_existente:
+            raise HTTPException(status_code=404, detail="La persona no tiene esta actividad asignada")
+        
+        db.delete(relacion_existente)
+        db.commit()
+        
+        return {"message": "Actividad eliminada de la persona exitosamente"}
+        
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al eliminar actividad: {str(e)}")
+
+
 # Endpoints para Empresa-Actividad
+
 @router.post("/empresa", response_model=dict)
 async def agregar_actividad_empresa(relacion: EmpresaActividadCreate, db: Session = Depends(get_db)):
-    """Agregar una actividad a una empresa"""
+    """
+    Asociar una actividad a una empresa con una especialización opcional.
+
+    Validaciones:
+    - La empresa y la actividad deben existir.
+    - La relación no debe existir previamente.
+
+    Retorna:
+    - Mensaje indicando éxito o error.
+    """
     try:
-        # Verificar que la empresa existe
         empresa = db.query(Empresa).filter(Empresa.id_empresa == relacion.id_empresa).first()
         if not empresa:
             raise HTTPException(status_code=404, detail="Empresa no encontrada")
         
-        # Verificar que la actividad existe
         actividad = db.query(Actividad).filter(Actividad.id_actividad == relacion.id_actividad).first()
         if not actividad:
             raise HTTPException(status_code=404, detail="Actividad no encontrada")
         
-        # Verificar si ya existe la relación
         relacion_existente = db.query(EmpresaActividad).filter(
             EmpresaActividad.id_empresa == relacion.id_empresa,
             EmpresaActividad.id_actividad == relacion.id_actividad
         ).first()
-        
         if relacion_existente:
             raise HTTPException(status_code=400, detail="La empresa ya tiene esta actividad")
         
@@ -200,9 +331,21 @@ async def agregar_actividad_empresa(relacion: EmpresaActividadCreate, db: Sessio
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al agregar actividad: {str(e)}")
 
+
 @router.get("/empresa/{id_empresa}", response_model=List[dict])
 async def obtener_actividades_empresa(id_empresa: int, db: Session = Depends(get_db)):
-    """Obtener actividades de una empresa específica"""
+    """
+    Obtener las actividades asignadas a una empresa.
+
+    Parámetros:
+    - id_empresa: ID de la empresa.
+    - db: sesión de base de datos.
+
+    Retorna:
+    - Lista con actividades y especializaciones asociadas.
+    - 404 si empresa no encontrada.
+    - 500 en error interno.
+    """
     try:
         empresa = db.query(Empresa).filter(Empresa.id_empresa == id_empresa).first()
         if not empresa:
@@ -225,3 +368,48 @@ async def obtener_actividades_empresa(id_empresa: int, db: Session = Depends(get
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener actividades: {str(e)}")
+
+
+@router.delete("/empresa/{id_empresa}/{id_actividad}", response_model=dict)
+async def eliminar_actividad_empresa(id_empresa: int, id_actividad: int, db: Session = Depends(get_db)):
+    """
+    Eliminar una actividad asignada a una empresa específica.
+
+    Parámetros:
+    - id_empresa: ID de la empresa.
+    - id_actividad: ID de la actividad a eliminar.
+    - db: sesión de base de datos.
+
+    Retorna:
+    - Mensaje de éxito.
+    - Errores 404 si empresa, actividad o relación no existen.
+    - 500 en error interno.
+    """
+    try:
+        empresa = db.query(Empresa).filter(Empresa.id_empresa == id_empresa).first()
+        if not empresa:
+            raise HTTPException(status_code=404, detail="Empresa no encontrada")
+        
+        actividad = db.query(Actividad).filter(Actividad.id_actividad == id_actividad).first()
+        if not actividad:
+            raise HTTPException(status_code=404, detail="Actividad no encontrada")
+        
+        relacion_existente = db.query(EmpresaActividad).filter(
+            EmpresaActividad.id_empresa == id_empresa,
+            EmpresaActividad.id_actividad == id_actividad
+        ).first()
+        
+        if not relacion_existente:
+            raise HTTPException(status_code=404, detail="La empresa no tiene esta actividad asignada")
+        
+        db.delete(relacion_existente)
+        db.commit()
+        
+        return {"message": "Actividad eliminada de la empresa exitosamente"}
+        
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al eliminar actividad: {str(e)}")

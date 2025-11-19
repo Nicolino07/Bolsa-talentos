@@ -21,13 +21,16 @@ export default function PerfilEmpresa({ usuario, onLogout }) {
         {seccion === "mis-actividades" && <MisActividades usuario={usuario} tipo="empresa" />}
         {seccion === "crear-oferta" && (
           <OfertaForm 
-            empresaId={usuario.id_empresa} 
+            usuario={usuario}  // ← Pasar usuario completo
             onOfertaCreada={() => setSeccion("gestionar-ofertas")}
             onCancelar={() => setSeccion("gestionar-ofertas")}
           />
         )}
         {seccion === "gestionar-ofertas" && (
-          <GestionOfertas empresaId={usuario.id_empresa} />
+          <GestionOfertas 
+            empresaId={usuario.dni} 
+            usuario={usuario}
+          />
         )}
       </div>
     </div>

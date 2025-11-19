@@ -124,3 +124,53 @@ CREATE TABLE usuario (
 -- Índices para optimizar consultas en la tabla persona_actividad
 CREATE INDEX idx_persona_actividad_dni ON persona_actividad(dni);
 CREATE INDEX idx_persona_actividad_actividad ON persona_actividad(id_actividad);
+
+
+-- =============================================
+-- PARA MAS POSIBLE MEJORA APRENDIZAJE AUTOMATICO
+-- =============================================
+
+-- TABLA PARA RELACIONES APRENDIDAS
+
+CREATE TABLE IF NOT EXISTS relaciones_aprendidas (
+    id SERIAL PRIMARY KEY,
+    
+    
+    habilidad_base          VARCHAR(100) NOT NULL,
+    habilidad_objetivo      VARCHAR(100) NOT NULL,
+    confianza               DECIMAL(3,2) DEFAULT 0.5 CHECK (confianza >= 0 AND confianza <= 1),
+    frecuencia              INTEGER DEFAULT 1,
+    fuente                  VARCHAR(20) DEFAULT 'co_ocurrencia' CHECK (fuente IN (
+        'manual', 'co_ocurrencia', 'contratos')),
+    activo                  BOOLEAN DEFAULT true,
+    creado_en               TIMESTAMP DEFAULT NOW(),
+    actualizado_en          TIMESTAMP DEFAULT NOW(),
+    
+    -- Una relación única por par de habilidades
+    UNIQUE(habilidad_base, habilidad_objetivo)
+);
+
+
+
+-- TABLA DE POSTULACIONES
+
+CREATE TABLE IF NOT EXISTS postulaciones (
+
+    id          SERIAL PRIMARY KEY,
+    dni         INTEGER NOT NULL REFERENCES persona(dni),
+    id_oferta   INTEGER NOT NULL REFERENCES oferta_empleo(id_oferta),
+    estado      VARCHAR(20) DEFAULT 'pendiente' CHECK (estado IN (
+        'pendiente', 'revisando', 'entrevista', 'contratado', 'rechazado'
+    )),
+    creado_en           TIMESTAMP DEFAULT NOW(),
+    actualizado_en      TIMESTAMP DEFAULT NOW()
+);
+
+-- Índices para búsquedas rápidas
+CREATE INDEX idx_postulaciones_dni ON postulaciones(dni);
+CREATE INDEX idx_postulaciones_oferta ON postulaciones(id_oferta);
+CREATE INDEX idx_postulaciones_estado ON postulaciones(estado);
+CREATE INDEX idx_postulaciones_fecha ON postulaciones(creado_en);
+CREATE INDEX idx_relaciones_base ON relaciones_aprendidas(habilidad_base);
+CREATE INDEX idx_relaciones_confianza ON relaciones_aprendidas(confianza) WHERE activo = true;
+CREATE INDEX idx_relaciones_activas ON relaciones_aprendidas(activo) WHERE activo = true;
