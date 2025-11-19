@@ -5,7 +5,8 @@ from .models import Postulacion
 from pydantic import BaseModel
 from typing import List, Optional
 
-router = APIRouter(prefix="/postulaciones", tags=["postulaciones"])
+router = APIRouter(tags=["postulaciones"])
+
 
 # Schemas
 class PostulacionBase(BaseModel):
@@ -62,3 +63,24 @@ async def crear_postulacion(postulacion: PostulacionCreate, db: Session = Depend
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Error al crear postulación: {str(e)}")
+    
+@router.delete("/{dni}/{id_oferta}")
+async def eliminar_postulacion(dni: int, id_oferta: int, db: Session = Depends(get_db)):
+    """Eliminar una postulación por DNI e id_oferta"""
+    try:
+        postulacion = db.query(Postulacion).filter(
+            Postulacion.dni == dni,
+            Postulacion.id_oferta == id_oferta
+        ).first()
+
+        if not postulacion:
+            raise HTTPException(404, "Postulación no encontrada")
+
+        db.delete(postulacion)
+        db.commit()
+
+        return {"mensaje": "Postulación eliminada correctamente"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, f"Error al eliminar postulación: {str(e)}")

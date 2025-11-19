@@ -1,286 +1,176 @@
-import React, { useState, useEffect } from 'react'
-import '../styles/FormStyles.css'
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const RecomendarHabilidades = ({ usuario }) => {
-  const [recomendaciones, setRecomendaciones] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [aprendizajeEjecutado, setAprendizajeEjecutado] = useState(false)
+export default function RecomendarHabilidades({ dni }) {
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [postulaciones, setPostulaciones] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (usuario?.dni) {
-      cargarRecomendacionesHabilidades()
+    if (!dni) {
+      console.error("❌ No se recibió DNI.");
+      return;
     }
-  }, [usuario])
 
-  const cargarRecomendacionesHabilidades = async () => {
+    const fetchData = async () => {
+      try {
+        console.log("📡 Solicitando recomendaciones para DNI:", dni);
+
+        const response = await axios.get(
+          `/api/actividades/recomendaciones/habilidades/${dni}`
+        );
+        const postResp = await axios.get(`/api/postulaciones/`);
+
+        console.log("📊 Respuesta del backend:", response.data);
+
+        setRecomendaciones(response.data.recomendaciones || []);
+        setPostulaciones(postResp.data);
+
+      } catch (err) {
+        console.error("❌ Error cargando recomendaciones:", err);
+        setError("Error al cargar recomendaciones");
+      }
+    };
+
+    fetchData();
+  }, [dni]);
+
+  const yaPostulado = (id_oferta) =>
+    postulaciones.some((p) => p.dni === dni && p.id_oferta === id_oferta);
+
+  const eliminarPostulacion = async (id_oferta) => {
     try {
-      setLoading(true)
-      setError('')
-      
-      console.log("🧠 Cargando recomendaciones de habilidades para:", usuario.dni)
-      
-      const response = await fetch(`http://localhost:3000/api/actividades/recomendaciones/habilidades/${usuario.dni}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      console.log("📊 Respuesta COMPLETA del backend:", data)
-      
-      // Manejar diferentes estructuras de respuesta
-      let recomendacionesObtenidas = []
-      
-      if (Array.isArray(data)) {
-        // Si la respuesta es directamente un array
-        recomendacionesObtenidas = data
-      } else if (data.recomendaciones && Array.isArray(data.recomendaciones)) {
-        // Si viene en formato {recomendaciones: [...]}
-        recomendacionesObtenidas = data.recomendaciones
-      } else if (data.habilidades && Array.isArray(data.habilidades)) {
-        // Si viene en formato {habilidades: [...]}
-        recomendacionesObtenidas = data.habilidades
-      } else if (data.data && Array.isArray(data.data)) {
-        // Si viene en formato {data: [...]}
-        recomendacionesObtenidas = data.data
-      }
-      
-      console.log("📊 Recomendaciones procesadas:", recomendacionesObtenidas)
-      
-      // Filtrar recomendaciones vacías o inválidas
-      const recomendacionesValidas = recomendacionesObtenidas.filter(item => 
-        item && (item.habilidad || item.nombre || item.skill)
-      )
-      
-      setRecomendaciones(recomendacionesValidas)
-      
-      if (recomendacionesValidas.length === 0) {
-        console.log("⚠️ No se encontraron recomendaciones válidas en la respuesta")
-      }
-      
-    } catch (error) {
-      console.error("❌ Error:", error)
-      setError(`Error al cargar recomendaciones: ${error.message}`)
-      setRecomendaciones([])
-    } finally {
-      setLoading(false)
+      await axios.delete(`/api/postulaciones/${dni}/${id_oferta}`);
+      alert("Postulación cancelada.");
+      setPostulaciones((prev) =>
+        prev.filter((p) => !(p.dni === dni && p.id_oferta === id_oferta))
+      );
+    } catch (err) {
+      console.error("❌ Error al eliminar postulación:", err);
+      alert("No se pudo cancelar la postulación.");
     }
-  }
+  };
 
-  const ejecutarAprendizaje = async () => {
+  const crearPostulacion = async (id_oferta) => {
+    const payload = {
+      dni,
+      id_oferta,
+      estado: "pendiente",
+    };
+
+    console.log("📨 Enviando postulación:", payload);
+
     try {
-        setLoading(true)
-        setDebugInfo('Ejecutando aprendizaje y sincronización...')
-        console.log("🎓 Ejecutando aprendizaje automático...")
-        
-        // Paso 1: Ejecutar aprendizaje en Prolog
-        const responseAprendizaje = await fetch('http://localhost:3000/api/actividades/sistema-aprendizaje/ejecutar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-        })
-        
-        if (!responseAprendizaje.ok) {
-        throw new Error(`Error en aprendizaje automático: ${responseAprendizaje.status}`)
-        }
-    
-        const dataAprendizaje = await responseAprendizaje.json()
-        console.log("✅ Aprendizaje completado:", dataAprendizaje)
-        
-        setDebugInfo('Aprendizaje completado. Sincronizando relaciones...')
-        
-        // Paso 2: Sincronizar relaciones con PostgreSQL
-        try {
-        const responseSincronizar = await fetch('http://localhost:3000/api/actividades/sistema-aprendizaje/sincronizar-relaciones', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            }
-        })
-        
-        if (responseSincronizar.ok) {
-            const dataSync = await responseSincronizar.json()
-            console.log("✅ Sincronización completada:", dataSync)
-            setDebugInfo('Aprendizaje y sincronización completados')
-        }
-        } catch (syncError) {
-        console.log("⚠️ Sincronización manual no disponible:", syncError)
-        }
-        
-        setAprendizajeEjecutado(true)
-        
-        // Esperar y recargar recomendaciones
-        setTimeout(() => {
-        console.log("🔄 Recargando recomendaciones...")
-        cargarRecomendacionesHabilidades()
-        }, 2000)
-        
-        } catch (error) {
-            console.error("❌ Error en aprendizaje:", error)
-            setError(`Error en el sistema de aprendizaje: ${error.message}`)
-            setDebugInfo('Error en el proceso')
-        }
+      const resp = await axios.post("/api/postulaciones/", payload);
+
+      alert("Postulación realizada!");
+
+      setPostulaciones((prev) => [...prev, payload]);
+
+    } catch (err) {
+      console.error("❌ Error al postular:", err.response?.data || err);
+      alert("No se pudo postular.");
     }
-
-  const getNombreHabilidad = (habilidad) => {
-    return habilidad.habilidad || habilidad.nombre || habilidad.skill || 'Habilidad sin nombre'
-  }
-
-  const getConfianza = (habilidad) => {
-    return habilidad.confianza || habilidad.score || habilidad.puntuacion || 0.5
-  }
-
-  const getRazon = (habilidad) => {
-    return habilidad.razon || habilidad.motivo || 'co_ocurrencia'
-  }
-
-  const getColorConfianza = (confianza) => {
-    if (confianza >= 0.7) return '#4caf50'
-    if (confianza >= 0.4) return '#ff9800'
-    return '#f44336'
-  }
-
-  const getNivelConfianza = (confianza) => {
-    if (confianza >= 0.7) return 'Alta'
-    if (confianza >= 0.4) return 'Media'
-    return 'Baja'
-  }
+  };
 
   return (
-    <section className="form-container">
-      <div className="form-header">
-        <h2 className="form-titulo">🧠 Empleos Recomendados</h2>
-        <p className="form-subtitulo">
-          Basado en aprendizaje automático de co-ocurrencias
-        </p>
-      </div>
+    <div className="perfil-content">
+      <div className="form-container">
+        <h2 className="form-titulo">Recomendaciones según tus habilidades</h2>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>⏳</div>
-          <p>Analizando patrones de habilidades...</p>
-        </div>
-      ) : error ? (
-        <div style={{
-          color: "#d32f2f",
-          backgroundColor: "#ffebee", 
-          padding: "20px",
-          borderRadius: "8px",
-          textAlign: 'center'
-        }}>
-          <strong>Error:</strong> {error}
-        </div>
-      ) : recomendaciones.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🤔</div>
-          <h4>No hay recomendaciones de habilidades</h4>
-          <p>El sistema está analizando patrones. Intenta ejecutar el aprendizaje automático.</p>
-          <button 
-            onClick={ejecutarAprendizaje}
-            className="btn-submit"
-            style={{ marginTop: '15px' }}
-          >
-            🎓 Ejecutar Aprendizaje Automático
-          </button>
-        </div>
-      ) : (
-        <div className="habilidades-grid">
-          {recomendaciones.map((habilidad, index) => (
-            <div key={index} className="info-card" style={{
-              borderLeft: `4px solid ${getColorConfianza(getConfianza(habilidad))}`
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '15px', 
-                right: '15px',
-                background: getColorConfianza(getConfianza(habilidad)),
-                color: 'white',
-                padding: '5px 10px',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                fontWeight: 'bold'
-              }}>
-                {getNivelConfianza(getConfianza(habilidad))}
-              </div>
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-              <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary-dark)' }}>
-                {getNombreHabilidad(habilidad)}
-              </h3>
-              
-              <div style={{ marginBottom: '10px' }}>
-                <strong>Confianza:</strong> {(getConfianza(habilidad) * 100).toFixed(1)}%
+        {recomendaciones.length === 0 && !error && (
+          <div className="seccion-placeholder">
+            <p>No hay recomendaciones disponibles en este momento.</p>
+          </div>
+        )}
+
+        <div className="formulario">
+          {recomendaciones.map((rec, index) => (
+            <div key={index} className="oferta-item">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                <div>
+                  <h3 style={{ color: 'var(--primary-dark)', margin: '0 0 8px 0' }}>{rec.habilidad}</h3>
+                  <div className="habilidad-item" style={{ display: 'inline-flex', marginBottom: '0' }}>
+                    Confianza: {rec.confianza}%
+                  </div>
+                </div>
+                <div className="habilidad-item" style={{ background: 'var(--primary-main)' }}>
+                  {rec.ofertas?.length || 0} ofertas
+                </div>
               </div>
               
-              <div style={{ 
-                fontSize: '0.9rem', 
-                color: 'var(--text-secondary)',
-                fontStyle: 'italic'
-              }}>
-                🎯 {getRazon(habilidad) === 'co_ocurrencia' ? 
-                  'Recomendada por aprendizaje automático' : 
-                  getRazon(habilidad)}
-              </div>
-              
-              <div style={{ marginTop: '15px' }}>
-                <button className="btn-submit" style={{ marginRight: '10px' }}>
-                  📚 Aprender
-                </button>
-                <button className="btn-volver">
-                  💾 Interesado
-                </button>
-              </div>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                <strong>Razón:</strong> {rec.razon}
+              </p>
+
+              {rec.ofertas?.length > 0 ? (
+                <div>
+                  <h4 style={{ color: 'var(--primary-dark)', marginBottom: '15px' }}>Ofertas disponibles</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {rec.ofertas.map((oferta) => {
+                      const postulado = yaPostulado(oferta.id_oferta);
+
+                      return (
+                        <div key={oferta.id_oferta} className="oferta-item" style={{ background: '#f8f9fa', padding: '20px' }}>
+                          <div style={{ marginBottom: '15px' }}>
+                            <h5 style={{ color: 'var(--primary-main)', margin: '0 0 8px 0' }}>{oferta.titulo}</h5>
+                            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>{oferta.descripcion}</p>
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            {!postulado ? (
+                              <button 
+                                className="btn-submit"
+                                onClick={() => crearPostulacion(oferta.id_oferta)}
+                                style={{ padding: '10px 20px', fontSize: '0.9rem' }}
+                              >
+                                Postularme
+                              </button>
+                            ) : (
+                              <>
+                                <button 
+                                  className="btn-submit" 
+                                  disabled 
+                                  style={{ 
+                                    background: 'var(--text-secondary)',
+                                    padding: '10px 20px',
+                                    fontSize: '0.9rem'
+                                  }}
+                                >
+                                  Ya Postulado
+                                </button>
+                                <button
+                                  className="btn-volver"
+                                  onClick={() => eliminarPostulacion(oferta.id_oferta)}
+                                  style={{ 
+                                    background: '#f44336',
+                                    color: 'white',
+                                    padding: '10px 20px',
+                                    fontSize: '0.9rem',
+                                    border: 'none'
+                                  }}
+                                >
+                                  Cancelar
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="seccion-placeholder" style={{ padding: '20px', margin: '10px 0' }}>
+                  <p>No hay ofertas para esta habilidad</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
-      )}
-
-      <div style={{ 
-        marginTop: '20px', 
-        textAlign: 'center',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '10px'
-      }}>
-        <button 
-          onClick={cargarRecomendacionesHabilidades}
-          className="btn-volver"
-          disabled={loading}
-        >
-          {loading ? '🔄 Actualizando...' : '🔄 Actualizar Recomendaciones'}
-        </button>
-        
-        <button 
-          onClick={ejecutarAprendizaje}
-          className="btn-submit"
-          disabled={loading}
-        >
-          🎓 Ejecutar Aprendizaje
-        </button>
       </div>
-
-      <div style={{
-        marginTop: '30px',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        fontSize: '0.9rem',
-        color: 'var(--text-secondary)'
-      }}>
-        <strong>💡 ¿Cómo funciona?</strong>
-        <p style={{ margin: '5px 0 0 0' }}>
-          El sistema analiza patrones de habilidades que suelen aparecer juntas 
-          en personas con perfiles similares al tuyo usando inteligencia artificial.
-        </p>
-        {aprendizajeEjecutado && (
-          <p style={{ margin: '5px 0 0 0', color: '#4caf50' }}>
-            ✅ El aprendizaje automático se ejecutó correctamente. Actualiza las recomendaciones.
-          </p>
-        )}
-      </div>
-    </section>
-  )
+    </div>
+  );
 }
-
-export default RecomendarHabilidades

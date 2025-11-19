@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import requests
 
-router = APIRouter(prefix="/relaciones-aprendidas", tags=["relaciones-aprendidas"])
+router = APIRouter(tags=["relaciones-aprendidas"])
 
 # Schemas
 class RelacionAprendidaBase(BaseModel):
