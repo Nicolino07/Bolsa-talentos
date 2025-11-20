@@ -105,7 +105,7 @@ BOLSA-TALENTOS/
 |               ├── HabilidadForm.jsx       # Formulario habilidad
 |               ├── InfoPersona.jsx         # Info personal
 |               ├── PerfilPersona.jsx       # Perfil persona
-|               ├── PostulacionesPersona    # Postulaciones
+|               ├── PostulacionesPersona.jsx    # Postulaciones
 |               └── SidebarPersona.jsx      # Navegación persona
 |
 ├── docker-compose.yml           # Configuración multi-contenedor: PostgreSQL, FastAPI, React y Prolog
