@@ -7,6 +7,8 @@ import GestionOfertas from "../GestionOfertas";
 import "../../styles/FormStyles.css";
 import RecomendarHabilidades from "../RecomendarHabilidades";
 import PostulacionesPersona from "./PostulacionesPersona";
+import MatchingPersona from "./MatchingPersona";
+
 
 function PerfilPersona({ usuario, onLogout }) {
   const [seccion, setSeccion] = useState("info");
@@ -28,6 +30,8 @@ function PerfilPersona({ usuario, onLogout }) {
         {seccion === "mis-actividades" && <MisActividades usuario={usuario} tipo="persona" />}
     
         {seccion === "recomendar-habilidades" && (<RecomendarHabilidades dni={usuario.dni} />)}
+        {seccion === "matching" && <MatchingPersona dni={usuario.dni} />}
+
 
         {seccion === "gestionar-postulaciones" && (
           <PostulacionesPersona dni={usuario.dni} />

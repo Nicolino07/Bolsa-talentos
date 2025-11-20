@@ -60,57 +60,57 @@ export default function PostulacionesPersona({ dni }) {
   };
 
   return (
-    <div>
-      <h2>📄 Mis Postulaciones</h2>
+    <div style={{ padding: "20px" }}>
+      <h2>🔍 Resultados de Matching</h2>
 
+      {loading && <p>Cargando...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {postulaciones.length === 0 ? (
-        <p>No tienes postulaciones.</p>
-      ) : (
-        postulaciones.map((p) => {
-          const oferta = detalleOfertas[p.id_oferta];
+      {data && data.recomendaciones && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>Ofertas recomendadas:</h3>
 
-          return (
+          {data.recomendaciones.map((item, index) => (
             <div
-              key={p.id}
+              key={index}
               style={{
-                border: "1px solid #ccc",
-                padding: 15,
-                marginBottom: 10,
-                background: "#fafafa",
-                borderRadius: 6,
+                background: "#f7f7f7",
+                padding: "12px",
+                marginBottom: "10px",
+                borderRadius: "10px",
+                border: "1px solid #ddd",
               }}
             >
-              <h3 style={{ margin: 0 }}>
-                {oferta?.titulo || "⏳ Cargando título..."}
-              </h3>
-
-              <p style={{ color: "#555" }}>
-                {oferta?.descripcion || "⏳ Cargando descripción..."}
-              </p>
-
               <p>
-                <strong>Estado:</strong> {p.estado}
+                <strong>Título:</strong> {item.titulo}
               </p>
-
-              <button
-                style={{
-                  background: "#d9534f",
-                  color: "white",
-                  padding: "8px 15px",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
-                onClick={() => cancelarPostulacion(p.id_oferta)}
-              >
-                Cancelar postulación
-              </button>
+              <p>
+                <strong>Puntaje:</strong> {item.puntaje}
+              </p>
+              <p>
+                <strong>ID Oferta:</strong> {item.oferta}
+              </p>
             </div>
-          );
-        })
+          ))}
+        </div>
       )}
+
+      {/* Opcional: dejar el JSON para debugging */}
+      <details style={{ marginTop: "20px" }}>
+        <summary>Ver JSON completo</summary>
+        <pre
+          style={{
+            background: "#eee",
+            padding: "15px",
+            borderRadius: "8px",
+            overflowX: "auto",
+            marginTop: "10px",
+          }}
+        >
+  {JSON.stringify(data, null, 2)}
+        </pre>
+      </details>
     </div>
   );
+
 }

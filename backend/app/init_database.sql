@@ -152,7 +152,6 @@ CREATE TABLE IF NOT EXISTS relaciones_aprendidas (
 );
 
 
-a
 -- TABLA DE POSTULACIONES
 
 CREATE TABLE IF NOT EXISTS postulaciones (

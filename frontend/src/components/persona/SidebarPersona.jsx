@@ -10,9 +10,14 @@ function SidebarPersona({ setSeccion, onLogout }) {
       <button onClick={() => setSeccion("mis-actividades")}>  
         🛠 Mis Habilidades
       </button>
+
+      <button onClick={() => setSeccion("matching")}>
+        🔍 Busqueda de empleo
+      </button>
+
      
       <button onClick={() => setSeccion("recomendar-habilidades")}>
-        🧠 Busqueda de empleo
+        🧠 Busqueda avanzada
       </button>
 
       <button onClick={() => setSeccion("crear-oferta")}>
