@@ -109,6 +109,7 @@ BOLSA-TALENTOS/
 |               └── SidebarPersona.jsx      # Navegación persona
 |
 ├── docker-compose.yml           # Configuración multi-contenedor: PostgreSQL, FastAPI, React y Prolog
+├── README.md
 └── Estructuras_flujo.txt
 
 
