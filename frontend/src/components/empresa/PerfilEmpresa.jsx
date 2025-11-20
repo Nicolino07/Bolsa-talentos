@@ -4,7 +4,7 @@ import InfoEmpresa from "./InfoEmpresa";
 import OfertaForm from "../OfertaForm";
 import GestionOfertas from "../GestionOfertas";
 import MisActividades from "../MisActividades";
-import PostulantesPorOferta from "../PostulantesPorOferta";
+import PostulacionesEmpresa from "./PostulacionesEmpresa";
 import BuscadorDeTalentos from "../BuscadorDeTalentos";
 
 import "../../styles/FormStyles.css";
@@ -31,13 +31,13 @@ export default function PerfilEmpresa({ usuario, onLogout }) {
         )}
         {seccion === "gestionar-ofertas" && (
           <GestionOfertas 
-            empresaId={usuario.dni} 
+            empresaId={usuario.id_empresa} 
             usuario={usuario}
           />
         )}
 
-        {seccion === "postulantes" && (
-          <PostulantesPorOferta usuario={usuario} />
+       {seccion === "gestionar-postulaciones" && (
+          <PostulacionesEmpresa usuario={usuario} />
         )}
 
         {seccion === "buscar-talentos" && (

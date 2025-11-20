@@ -49,7 +49,7 @@ CREATE TABLE estudio (
     fecha_inicio        DATE NOT NULL,
     fecha_fin           DATE,
     estado              VARCHAR(50) CHECK (estado IN ('COMPLETADO', 'EN CURSO', 'SIN TERMINAR')),
-    descripcion         TEXT
+    descripcion         TEXT,
     PRIMARY KEY (titulo, dni)
 );
 
@@ -127,7 +127,8 @@ CREATE INDEX idx_persona_actividad_actividad ON persona_actividad(id_actividad);
 
 
 -- =============================================
--- PARA MAS POSIBLE MEJORA APRENDIZAJE AUTOMATICO
+-- POSIBLE MEJORA - APRENDIZAJE AUTOMATICO - SEGERENCIA DE IA
+-- a futuro
 -- =============================================
 
 -- TABLA PARA RELACIONES APRENDIDAS
@@ -151,7 +152,7 @@ CREATE TABLE IF NOT EXISTS relaciones_aprendidas (
 );
 
 
-
+a
 -- TABLA DE POSTULACIONES
 
 CREATE TABLE IF NOT EXISTS postulaciones (

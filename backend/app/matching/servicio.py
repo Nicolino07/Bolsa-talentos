@@ -10,7 +10,6 @@ def generar_hechos(db: Session = None):
     """
     rutas = generador_principal()   # ← genera archivos correctamente
 
-    # SOLUCIÓN: Usar solo recarga en lugar de upload
     recargar_hechos_en_prolog()
 
     return {

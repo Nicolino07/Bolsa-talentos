@@ -6,7 +6,7 @@ import OfertaForm from "../OfertaForm";
 import GestionOfertas from "../GestionOfertas";
 import "../../styles/FormStyles.css";
 import RecomendarHabilidades from "../RecomendarHabilidades";
-import PostulantesPorOferta from "../PostulantesPorOferta";
+import PostulacionesPersona from "./PostulacionesPersona";
 
 function PerfilPersona({ usuario, onLogout }) {
   const [seccion, setSeccion] = useState("info");
@@ -29,7 +29,10 @@ function PerfilPersona({ usuario, onLogout }) {
     
         {seccion === "recomendar-habilidades" && (<RecomendarHabilidades dni={usuario.dni} />)}
 
-        {seccion === "gestionar-postulaciones" && (<PostulantesPorOferta usuario={usuario} />)}
+        {seccion === "gestionar-postulaciones" && (
+          <PostulacionesPersona dni={usuario.dni} />
+        )}
+
 
         {seccion === "crear-oferta" && (
           <OfertaForm 
