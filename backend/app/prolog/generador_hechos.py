@@ -4,7 +4,7 @@ import requests
 from sqlalchemy import text
 from app.database import SessionLocal
 
-
+"""Limpia y formatea texto para Prolog: normaliza acentos y capitaliza"""
 def limpiar_y_formatear(texto):
     if texto is None:
         return ""
@@ -12,8 +12,12 @@ def limpiar_y_formatear(texto):
     texto = " ".join([t.capitalize() for t in texto.split()])
     return texto
 
-
+"""
+    Función principal que genera archivos .pl para Prolog extrayendo datos de PostgreSQL
+    y combinando con relaciones aprendidas del motor Prolog existente
+"""
 def generar_hechos():
+
     db = SessionLocal()
     
     # RUTAS - escribir en volumen Y en directorio del código
@@ -43,7 +47,7 @@ def generar_hechos():
     lineas_postulaciones = []
 
     # -------------------------
-    # PERSONA
+    # PERSONA - Extrae datos de personas para Prolog
     # -------------------------
     personas = db.execute(text("""
         SELECT dni, nombre, apellido, ciudad, provincia
@@ -57,7 +61,7 @@ def generar_hechos():
         )
 
     # -------------------------
-    # PERSONA_ACTIVIDAD
+    # PERSONA_ACTIVIDAD - Habilidades y experiencia de personas
     # -------------------------
     pa = db.execute(text("""
         SELECT dni, id_actividad, nivel_experiencia, años_experiencia
@@ -71,7 +75,7 @@ def generar_hechos():
         )
 
     # -------------------------
-    # ACTIVIDAD (necesario para las relaciones)
+    # ACTIVIDAD - Catálogo de habilidades disponibles
     # -------------------------
     actividades = db.execute(text("""
         SELECT id_actividad, nombre, area, especialidad, descripcion
@@ -86,7 +90,7 @@ def generar_hechos():
         )
 
     # -------------------------
-    # OFERTAS
+    # OFERTAS - Ofertas de empleo activas
     # -------------------------
     ofertas = db.execute(text("""
         SELECT id_oferta, id_empresa, titulo, activa
@@ -100,7 +104,7 @@ def generar_hechos():
         )
 
     # -------------------------
-    # OFERTA_ACTIVIDAD
+    # OFERTA_ACTIVIDAD - Habilidades requeridas por oferta
     # -------------------------
     oa = db.execute(text("""
         SELECT id_oferta, id_actividad, nivel_requerido
@@ -115,6 +119,7 @@ def generar_hechos():
 
     # -------------------------
     # RELACIONES APRENDIDAS - BIDIRECCIONAL (PostgreSQL + Prolog)
+    # Combina relaciones históricas de BD con aprendizaje actual de Prolog
     # -------------------------
     
     # 1. Obtener relaciones de PostgreSQL (conocimiento histórico)
@@ -194,7 +199,7 @@ def generar_hechos():
     print(f"🔗 Relaciones combinadas: {len(relaciones_sql)} PostgreSQL + {len(relaciones_prolog)} Prolog = {len(lineas_relaciones)} total")
 
     # -------------------------
-    # POSTULACIONES
+    # POSTULACIONES - Historial de postulaciones
     # -------------------------
     postulaciones = db.execute(text("""
         SELECT dni, id_oferta, estado
