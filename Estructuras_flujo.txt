@@ -1,75 +1,120 @@
 BOLSA-TALENTOS/
 │
 ├── backend/
-|     ├── Dockerfile
-|     ├── requirements.txt
-|     ├── main.py
+|     ├── Dockerfile                    # Contenedor Backend Python
+|     ├── requirements.txt              # Dependencias Python
+|     ├── main.py                       # App FastAPI principal
+|     ├── startScript.sh                # Script inicio servidor (Docker)
 |     └── app/
+|       ├── database.py                 # Conexión base datos
+|       ├── init_database.sql           # Inicialización BD
+|       |
 |       ├── actividades/
-|       │   ├── __init__.py
-|       │   ├── models.py
-|       │   └── routes.py
-|       ├── ofertas/
-|       │   ├── __init__.py
-|       │   ├── models.py
-|       │   └── routes.py
+|       │   ├── models.py               # Modelo Actividad
+|       │   └── routes.py               # APIs actividades
 |       |
-|       ├── autenticacion/                       # Módulo de autenticación
-|       │    ├── __init__.py
+|       ├── autenticacion/
 |       │    ├── models.py              # Modelo Usuario
-|       │    ├── routes.py              # APIs: /registro, /login, /logout
-|       │    └── security.py            # Password hashing, JWT tokens
-|       │      
-|       ├── database.py              # Conexión DB única
-|       ├── personas/                # TODO relacionado con Persona
-|       │   ├── __init__.py
-|       │   ├── models.py            # Modelo Persona (POO)
-|       │   └── routes.py            # APIs + Servicios (Funcional)
+|       │    ├── routes.py              # APIs endpoints: /registro, /login, /logout
+|       │    └── security.py            # Password hashing y JWT tokens
 |       |
-|       └── empresas/                # TODO relacionado con Empresa
-|       |    ├── __init__.py
-|       |    ├── models.py            # Modelo Empresa (POO)
-|       |    └── routes.py            # APIs + Servicios (Funcional)
+|       └── empresas/
+|       |    ├── models.py              # Modelo Empresa
+|       |    └── routes.py              # APIs empresas
 |       |
-|       ├── prolog/                #  Paradigma Lógico
-│       │   ├── motor.py       # Bridge Python↔Prolog
-│       │   ├── reglas.pl      # Reglas de matching
-|       │   └── hechos.pl      # Hechos generados desde DB
-|       └── matching/          # Servicio de matching
-|           ├── routes.py
-|           └── servicio.py    # Orquesta todo el proceso
+|       ├── matching/
+|       │   ├── models.py               # Modelos matching
+|       │   └── servicio.py             # Genera hechos desde BD y sincroniza con Prolog
+|       |
+|       ├── ofertas/
+|       │   ├── models.py               # Modelo Oferta
+|       │   └── routes.py               # APIs ofertas
+|       |
+|       ├── personas/
+|       │   ├── models.py               # Modelo Persona
+|       │   └── routes.py               # APIs personas
+|       |
+|       ├── postulaciones/
+|       │   ├── models.py               # Modelo Postulación
+|       │   └── routes.py               # APIs postulaciones
+|       |
+|       ├── prolog/                     # Paradigma Lógico
+│       │   ├── dockerfile              # Contenedor Prolog
+│       │   ├── generador_hechos.py     # Genera hechos desde BD
+│       │   ├── motor.py                # Bridge Python↔Prolog
+│       │   ├── reglas.pl               # Reglas de matching
+│       │   ├── server.pl               # Servidor HTTP Prolog
+|       │   ├── wrapper.pl              # Módulo Prolog
+|       │   └── data/                                       # Datos Prolog
+|       |       ├── hechos.pl                           # Hechos personas/empresas
+|       |       ├── ofertas.pl                          # Hechos ofertas
+|       |       ├── postulaciones.pl                    # Hechos postulaciones
+|       |       ├── relaciones.pl                       # Relaciones habilidades
+|       |       └── relaciones_aprendidas.pl            # Aprendizaje automático
+|       |
+|       └── relaciones/
+|           ├── models.py               # Modelo Relación
+|           └── routes.py               # APIs relaciones
 |
 └── frontend/
-|   ├── Dockerfile
-|   ├── package.json
+|   ├── Dockerfile                          # Contenedor Frontend
+|   ├── eslint.config.js                    # Configuración ESLint para React + Vite
+|   ├── index.html                          # HTML principal
+|   ├── package.json                        # Dependencias React
+|   ├── package-lock.json                   # Versiones exactas dependencias NPM
+|   ├── vite.config.js                      # Config Vite
+|   |
+|   ├── public/
+|   |  └── vite.svg                         # Assets públicos
+|   |
 |   └── src/
-|      ├── main.jsx
-|      ├── App.jsx
-|      ├── App.css
+|      ├── App.css                          # Estilos principales
+|      ├── App.jsx                          # Componente raíz
+|      ├── index.css                        # Estilos globales
+|      ├── main.jsx                         # Punto entrada React
+|      |
+|      ├── assets/
+|      │   └── react.svg                    # Imágenes/iconos
+|      |
 |      ├── servicios/
-|      │   └── Api.js              # Todas las llamadas API
+|      │   └── Api.js                       # Todas las llamadas API
+│      │
 |      ├── styles/
-|      │   └── FormStyles.css      # Estilos reutilizables
-|      └── components/
-|           ├── BuscarEmpleo.jsx     # Formulario Persona
-|           ├── BuscarEmpresa.jsx     # Formulario Empresa
-|           ├── CrearUsuarioForm.jsx     
-|           ├── LoginForm.jsx    
-|           ├── CrearOferta.jsx     
-|           ├── PerfilPersona.jsx      <-- Vista principal del perfil
-|           ├── perfil/
-|           │   ├── SidebarPerfil.jsx
-|           │   ├── InfoPersona.jsx
-|           │   ├── HabilidadesPersona.jsx
-|           │   └── HabilidadForm.jsx
+|      |   ├── FormStyles.css               # Estilos formularios
+|      │   └── OfertaForm.css               # Estilos ofertas
+|      |
+|      └── components/                              # Componentes React
+|           ├── BuscadorDeTalentos.jsx      # Búsqueda talentos
+|           ├── BuscarEmpleo.jsx            # Formulario empleo
+|           ├── BuscarEmpresa.jsx           # Formulario empresa
+|           ├── CrearUsuarioForm.jsx        # Registro usuario
+|           ├── GestionOfertas.jsx          # Gestión ofertas
+|           ├── LoginForm.jsx               # Formulario login
+|           ├── MisActividades.jsx          # Gestión habilidades
+|           ├── OfertaForm.jsx              # Crear oferta
+|           ├── RecomendarHabilidades.jsx   # Recomendaciones inteligentes con postulaciones
+|           |
+|           ├── empresa/
+|           │   ├── InfoEmpresa.jsx             # Info empresa
+|           │   ├── PerfilEmpresa.jsx           # Perfil empresa
+|           │   ├── PostulacionesEmpresa.jsx    # Postulaciones
+|           │   └── SidebarEmpresa.jsx          # Navegación empresa
+│           │
+|           └── persona/
+|               ├── HabilidadesPersona.jsx  # Habilidades
+|               ├── HabilidadForm.jsx       # Formulario habilidad
+|               ├── InfoPersona.jsx         # Info personal
+|               ├── PerfilPersona.jsx       # Perfil persona
+|               ├── PostulacionesPersona    # Postulaciones
+|               └── SidebarPersona.jsx      # Navegación persona
 |
-├── docker-compose.yml
-└── README.md
+├── docker-compose.yml           # Configuración multi-contenedor: PostgreSQL, FastAPI, React y Prolog
+└── Estructuras_flujo.txt
 
 
 ┌─────────────────┐    ┌──────────────────┐    ┌────────────────┐
 │   Frontend      │    │   Backend        │    │   PostgreSQL   │
-│   (React)       │◄──►│   (FastAPI)      │◄──►│   (Persistencia)│
+│   (React)       │◄──►│   (FastAPI)      │◄──►│  (Persistencia)│
 └─────────────────┘    └──────────────────┘    └────────────────┘
                               │
                               │  🧠 Prolog en tiempo real
@@ -94,3 +139,10 @@ Motor Prolog: EJECUTA REGLAS LÓGICAS de matching
 Backend: Transforma resultados Prolog → JSON
      ↓
 Frontend: Muestra ofertas recomendadas ordenadas por compatibilidad
+
+
+
+# Frontend: http://localhost:5173
+# Backend: http://localhost:3000
+# Prolog: http://localhost:4000
+# PGAdmin: http://localhost:5050
