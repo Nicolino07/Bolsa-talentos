@@ -9,7 +9,8 @@ from app.empresas.models import Empresa
 from .security import get_password_hash, verify_password, create_access_token, get_current_user
 
 
-router = APIRouter(prefix="/auth", tags=["autenticación"])
+router = APIRouter(tags=["autenticación"])
+
 security = HTTPBearer()
 
 
