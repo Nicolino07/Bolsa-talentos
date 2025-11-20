@@ -1,3 +1,5 @@
+% Exporta predicados
+
 :- module(wrapper, [
     persona/5,
     persona_actividad/4,
