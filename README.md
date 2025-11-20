@@ -1,5 +1,8 @@
 # Bolsa-talentos
-Proyecto integrador para Programación 3. Vargas Nicolás - Santiago Bravo
+### Proyecto final integrador para Programación 3.
 
+**Autores**: Nicolás Elias Vargas y Santiago Bravo
 
-Hola nico soy santi desde mi pc jeje
+**Docentes**: Paola Britos y Pablo Argañaras.
+
+Universidad Nacional de Rio Negro, Bariloche, Argentina.

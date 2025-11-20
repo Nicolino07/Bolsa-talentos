@@ -121,12 +121,6 @@ Username: postgres
 Password: postgres1234
 
 💡 Esto solo configura pgAdmin para conectarse al contenedor. La base ya existe.
-=========================================================================================
-NOTA!! Los datos cargados en una pc no viajan por git, los usuarios creados en la base 
-de datos de una pc solo existen en ella. Localmente
-
-Entonces prolog debe funcionar en tiempo real, para evitar inconsistencia de datos.  
-==========================================================================================
 
 
 ✅ ¿Cómo comprobar que todo está funcionando?

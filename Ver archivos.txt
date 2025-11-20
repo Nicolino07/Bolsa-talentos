@@ -1,7 +1,4 @@
-
 Para ver archivos creados por el genrador_archivos ejecutar en la terminal
 
 docker exec bolsa_talentos_prolog cat /app/data/hechos.pl
-
 docker exec bolsa_talentos_prolog cat /app/data/ofertas.pl
-
