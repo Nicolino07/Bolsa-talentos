@@ -1,11 +1,17 @@
 import os
 import requests
 
+# URL del servicio Prolog (default: http://prolog-engine:4000)
 PROLOG_URL = os.getenv("PROLOG_URL", "http://prolog-engine:4000")
 
 class MotorProlog:
+    """
+Cliente para interactuar con el servicio Prolog que maneja
+el sistema de matching y recomendaciones inteligentes
+"""
     @staticmethod
     def cargar_hechos(archivo_texto: str):
+        """Sube hechos Prolog al motor para su procesamiento"""
         files = {"file": ("hechos.pl", archivo_texto, "text/plain")}
         try:
             r = requests.post(f"{PROLOG_URL}/upload_hechos", files=files, timeout=10)
@@ -16,6 +22,7 @@ class MotorProlog:
 
     @staticmethod
     def consultar(predicado: str):
+        """Ejecuta una consulta Prolog personalizada"""
         try:
             r = requests.post(f"{PROLOG_URL}/consultar", json={"query": predicado}, timeout=10)
             r.raise_for_status()
@@ -24,12 +31,12 @@ class MotorProlog:
             return {"status": "error", "detalle": str(e)}
         
     def __init__(self):
+        """Inicializa el cliente con la URL del servicio Prolog"""
         self.prolog_url = os.getenv("PROLOG_URL", "http://prolog-engine:4000")
 
     def buscar_recomendaciones(self, dni: int):
         """Consulta al microservicio Prolog para obtener recomendaciones."""
         try:
-            # URL CORREGIDA: usar parámetro query en lugar de path
             url = f"{self.prolog_url}/matching?dni={dni}"
             print(f"🔍 Llamando a Prolog: {url}")
             
