@@ -49,7 +49,7 @@ app = FastAPI(
 )
 
 # -------------------------------------------------------------------------
-# CORS
+# CORS (Permite las peticiones al navegador desde diferentes puertos)
 # -------------------------------------------------------------------------
 
 app.add_middleware(
