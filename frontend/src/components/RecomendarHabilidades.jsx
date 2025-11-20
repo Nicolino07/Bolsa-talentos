@@ -29,13 +29,15 @@ export default function RecomendarHabilidades({ dni }) {
   }, [dni]);
 
   const yaPostulado = (id_oferta) =>
-    postulaciones.some((p) => p.dni === dni && p.id_oferta === id_oferta);
+    postulaciones.some(
+      (p) => p.dni === dni && Number(p.id_oferta) === Number(id_oferta)
+    );
 
   const eliminarPostulacion = async (id_oferta) => {
     try {
       await axios.delete(`/api/postulaciones/${dni}/${id_oferta}`);
       setPostulaciones((p) =>
-        p.filter((x) => !(x.dni === dni && x.id_oferta === id_oferta))
+        p.filter((x) => !(x.dni === dni && Number(x.id_oferta) === Number(id_oferta)))
       );
     } catch (err) {
       console.error(err.response?.data || err);
@@ -44,6 +46,11 @@ export default function RecomendarHabilidades({ dni }) {
   };
 
   const crearPostulacion = async (id_oferta) => {
+    if (!Number(id_oferta)) {
+      alert("Esta oferta no existe en el sistema.");
+      return;
+    }
+
     const payload = { dni, id_oferta };
 
     try {
@@ -67,19 +74,7 @@ export default function RecomendarHabilidades({ dni }) {
         <div className="formulario">
           {recomendaciones.map((rec, i) => {
             const match = pct(rec.confianza);
-
-            // 🔥 Si no hay ofertas → crear 1 oferta virtual para habilitar botones
-            const ofertas =
-              rec.ofertas?.length > 0
-                ? rec.ofertas
-                : [
-                    {
-                      id_oferta: `virtual_${i}`, // ID único ficticio
-                      titulo: `Recomendación para ${rec.habilidad}`,
-                      descripcion:
-                        "Postulación basada en tu habilidad recomendada.",
-                    },
-                  ];
+            const ofertas = rec.ofertas || [];
 
             return (
               <div
@@ -130,7 +125,8 @@ export default function RecomendarHabilidades({ dni }) {
                       fontSize: "0.8rem",
                     }}
                   >
-                    {ofertas.length} coincidencia{ofertas.length > 1 ? "s" : ""}
+                    {ofertas.length} coincidencia
+                    {ofertas.length !== 1 ? "s" : ""}
                   </span>
                 </div>
 
@@ -139,7 +135,14 @@ export default function RecomendarHabilidades({ dni }) {
                   <strong>Razón:</strong> {rec.razon}
                 </p>
 
-                {/* OFERTAS (siempre hay 1 mínima) */}
+                {/* SIN OFERTAS REALES */}
+                {ofertas.length === 0 && (
+                  <p style={{ color: "#888", fontStyle: "italic" }}>
+                    No hay ofertas reales de empleo para esta habilidad en este momento.
+                  </p>
+                )}
+
+                {/* OFERTAS */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
                   {ofertas.map((oferta) => {
                     const postulado = yaPostulado(oferta.id_oferta);
@@ -172,7 +175,6 @@ export default function RecomendarHabilidades({ dni }) {
                           {oferta.descripcion}
                         </p>
 
-                        {/* BOTONES SIEMPRE */}
                         {!postulado ? (
                           <button
                             className="btn-submit"
