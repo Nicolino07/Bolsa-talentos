@@ -14,10 +14,11 @@ export default function RecomendarHabilidades({ dni }) {
         const response = await axios.get(
           `/api/actividades/recomendaciones/habilidades/${dni}`
         );
+
         const postResp = await axios.get(`/api/postulaciones/`);
 
         setRecomendaciones(response.data.recomendaciones || []);
-        setPostulaciones(postResp.data);
+        setPostulaciones(postResp.data || []);
       } catch (err) {
         console.error(err);
         setError("Error al cargar recomendaciones");
@@ -37,17 +38,19 @@ export default function RecomendarHabilidades({ dni }) {
         p.filter((x) => !(x.dni === dni && x.id_oferta === id_oferta))
       );
     } catch (err) {
+      console.error(err.response?.data || err);
       alert("No se pudo cancelar la postulación.");
     }
   };
 
   const crearPostulacion = async (id_oferta) => {
-    const payload = { dni, id_oferta, estado: "pendiente" };
+    const payload = { dni, id_oferta };
 
     try {
-      await axios.post("/api/postulaciones/", payload);
-      setPostulaciones((prev) => [...prev, payload]);
+      const resp = await axios.post("/api/postulaciones/", payload);
+      setPostulaciones((prev) => [...prev, resp.data]);
     } catch (err) {
+      console.error("Error al postular:", err.response?.data || err);
       alert("No se pudo postular.");
     }
   };
@@ -62,158 +65,151 @@ export default function RecomendarHabilidades({ dni }) {
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         <div className="formulario">
-          {recomendaciones.map((rec, i) => (
-            <div
-              key={i}
-              className="card"
-              style={{
-                background: "white",
-                padding: 20,
-                borderRadius: 12,
-                marginBottom: 25,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-              }}
-            >
-              {/* HEADER */}
+          {recomendaciones.map((rec, i) => {
+            const match = pct(rec.confianza);
+
+            // 🔥 Si no hay ofertas → crear 1 oferta virtual para habilitar botones
+            const ofertas =
+              rec.ofertas?.length > 0
+                ? rec.ofertas
+                : [
+                    {
+                      id_oferta: `virtual_${i}`, // ID único ficticio
+                      titulo: `Recomendación para ${rec.habilidad}`,
+                      descripcion:
+                        "Postulación basada en tu habilidad recomendada.",
+                    },
+                  ];
+
+            return (
               <div
+                key={i}
+                className="card"
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 15,
+                  background: "white",
+                  padding: 20,
+                  borderRadius: 12,
+                  marginBottom: 25,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
                 }}
               >
-                <div>
-                  <h3 style={{ margin: 0, color: "var(--primary-dark)" }}>
-                    {rec.habilidad}
-                  </h3>
+                {/* HEADER */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 15,
+                  }}
+                >
+                  <div>
+                    <h3 style={{ margin: 0, color: "var(--primary-dark)" }}>
+                      {rec.habilidad}
+                    </h3>
+
+                    <span
+                      style={{
+                        display: "inline-block",
+                        marginTop: 5,
+                        padding: "4px 10px",
+                        borderRadius: 6,
+                        background: "var(--accent-color)",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      Match: {match}%
+                    </span>
+                  </div>
+
                   <span
                     style={{
-                      display: "inline-block",
-                      marginTop: 5,
-                      padding: "4px 10px",
+                      padding: "6px 12px",
                       borderRadius: 6,
-                      background: "var(--accent-color)",
+                      background: "var(--primary-main)",
+                      color: "white",
                       fontSize: "0.8rem",
                     }}
                   >
-                    Match: {pct(rec.confianza)}%
+                    {ofertas.length} coincidencia{ofertas.length > 1 ? "s" : ""}
                   </span>
                 </div>
 
-                <span
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: 6,
-                    background: "var(--primary-main)",
-                    color: "white",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  {rec.ofertas?.length || 0} vacantes
-                </span>
-              </div>
+                {/* RAZÓN */}
+                <p style={{ marginBottom: 20, color: "var(--text-secondary)" }}>
+                  <strong>Razón:</strong> {rec.razon}
+                </p>
 
-              {/* RAZÓN */}
-              <p style={{ marginBottom: 20, color: "var(--text-secondary)" }}>
-                <strong>Razón:</strong> {rec.razon}
-              </p>
+                {/* OFERTAS (siempre hay 1 mínima) */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+                  {ofertas.map((oferta) => {
+                    const postulado = yaPostulado(oferta.id_oferta);
 
-              {/* VACANTES */}
-              {rec.ofertas?.length > 0 ? (
-                <>
-                  <h4
-                    style={{
-                      marginBottom: 10,
-                      color: "var(--primary-dark)",
-                    }}
-                  >
-                    Vacantes compatibles
-                  </h4>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-                    {rec.ofertas.map((oferta) => {
-                      const postulado = yaPostulado(oferta.id_oferta);
-
-                      return (
-                        <div
-                          key={oferta.id_oferta}
+                    return (
+                      <div
+                        key={oferta.id_oferta}
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: 15,
+                          borderRadius: 10,
+                          background: "#fafafa",
+                        }}
+                      >
+                        <h5
                           style={{
-                            border: "1px solid #ddd",
-                            padding: 15,
-                            borderRadius: 10,
-                            background: "#fafafa",
+                            margin: "0 0 5px 0",
+                            color: "var(--primary-main)",
                           }}
                         >
-                          <h5
-                            style={{
-                              margin: "0 0 5px 0",
-                              color: "var(--primary-main)",
-                            }}
-                          >
-                            {oferta.titulo}
-                          </h5>
-                          <p
-                            style={{
-                              margin: "0 0 15px 0",
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            {oferta.descripcion}
-                          </p>
+                          {oferta.titulo}
+                        </h5>
 
-                          {/* BOTONES */}
-                          {!postulado ? (
+                        <p
+                          style={{
+                            margin: "0 0 15px 0",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          {oferta.descripcion}
+                        </p>
+
+                        {/* BOTONES SIEMPRE */}
+                        {!postulado ? (
+                          <button
+                            className="btn-submit"
+                            onClick={() => crearPostulacion(oferta.id_oferta)}
+                          >
+                            Postularme
+                          </button>
+                        ) : (
+                          <div style={{ display: "flex", gap: 10 }}>
                             <button
                               className="btn-submit"
-                              onClick={() => crearPostulacion(oferta.id_oferta)}
+                              disabled
+                              style={{ background: "gray" }}
                             >
-                              Postularme
+                              Ya postulado
                             </button>
-                          ) : (
-                            <div style={{ display: "flex", gap: 10 }}>
-                              <button
-                                className="btn-submit"
-                                disabled
-                                style={{ background: "gray" }}
-                              >
-                                Ya postulado
-                              </button>
-                              <button
-                                className="btn-volver"
-                                style={{
-                                  background: "#e53935",
-                                  color: "white",
-                                  border: "none",
-                                }}
-                                onClick={() =>
-                                  eliminarPostulacion(oferta.id_oferta)
-                                }
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <div
-                  style={{
-                    background: "#f1f1f1",
-                    padding: 15,
-                    borderRadius: 10,
-                    textAlign: "center",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  No hay vacantes para esta habilidad
+
+                            <button
+                              className="btn-volver"
+                              style={{
+                                background: "#e53935",
+                                color: "white",
+                                border: "none",
+                              }}
+                              onClick={() => eliminarPostulacion(oferta.id_oferta)}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

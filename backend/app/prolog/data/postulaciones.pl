@@ -6,4 +6,6 @@ postulacion(25999888, 4, "pendiente").
 postulacion(27977444, 5, "revisando").
 postulacion(33900888, 6, "contratado").
 postulacion(37364223, 2, "pendiente").
+postulacion(36343051, 9, "contratado").
+postulacion(37364223, 9, "pendiente").
 postulacion(36343051, 2, "pendiente").

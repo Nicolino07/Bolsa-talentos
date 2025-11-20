@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from .models import Postulacion
+from app.personas.models import Persona
+from app.ofertas.models import OfertaEmpleo
 from pydantic import BaseModel
 from typing import List, Optional
+
 
 router = APIRouter(tags=["postulaciones"])
 
@@ -84,3 +87,62 @@ async def eliminar_postulacion(dni: int, id_oferta: int, db: Session = Depends(g
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Error al eliminar postulación: {str(e)}")
+    
+
+@router.get("/empresa/{id_empresa}")
+async def obtener_postulaciones_empresa(id_empresa: int, db: Session = Depends(get_db)):
+    resultados = (
+        db.query(
+            Postulacion.id,
+            Postulacion.estado,
+            Postulacion.creado_en,
+            Persona.dni,
+            Persona.apellido,
+            Persona.nombre,
+            Persona.email,
+            Persona.telefono,
+            OfertaEmpleo.id_oferta,
+            OfertaEmpleo.titulo,
+            OfertaEmpleo.descripcion,
+            OfertaEmpleo.fecha_publicacion
+        )
+        .join(Persona, Persona.dni == Postulacion.dni)
+        .join(OfertaEmpleo, OfertaEmpleo.id_oferta == Postulacion.id_oferta)
+        .filter(OfertaEmpleo.id_empresa == id_empresa)
+        .all()
+    )
+
+    return [
+        {
+            "id_postulacion": r.id,
+            "estado": r.estado,
+            "creado_en": r.creado_en,
+            "persona": {
+                "dni": r.dni,
+                "apellido": r.apellido,
+                "nombre": r.nombre,
+                "email": r.email,
+                "telefono": r.telefono,
+            },
+            "oferta": {
+                "id_oferta": r.id_oferta,
+                "titulo": r.titulo,
+                "descripcion": r.descripcion,
+                "fecha_publicacion": r.fecha_publicacion,
+            }
+        }
+        for r in resultados
+    ]
+
+@router.put("/{id_postulacion}/estado")
+async def actualizar_estado(id_postulacion: int, estado: str, db: Session = Depends(get_db)):
+    postulacion = db.query(Postulacion).filter(Postulacion.id == id_postulacion).first()
+
+    if not postulacion:
+        raise HTTPException(404, "Postulación no encontrada")
+
+    postulacion.estado = estado
+    db.commit()
+    db.refresh(postulacion)
+
+    return {"mensaje": "Estado actualizado", "estado": postulacion.estado}

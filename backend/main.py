@@ -73,7 +73,7 @@ app.include_router(auth_router, prefix="/auth")
 
 
 # Matching con prefijo estándar
-app.include_router(matching_router, prefix="/api/matching", tags=["Matching"])
+app.include_router(matching_router, prefix="/api/matching")
 # Aprendizaje
 app.include_router(relaciones_router, prefix="/api/relaciones-aprendidas")
 app.include_router(postulaciones_router, prefix="/api/postulaciones")

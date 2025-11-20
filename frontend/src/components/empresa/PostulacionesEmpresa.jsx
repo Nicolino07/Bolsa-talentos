@@ -1,171 +1,194 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import "../../styles/FormStyles.css";
 
-function PostulacionesEmpresa({ usuario }) {
-  const [postulaciones, setPostulaciones] = useState([]);
-  const [ofertasEmpresa, setOfertasEmpresa] = useState([]);
-  const [personas, setPersonas] = useState({});
-  const [error, setError] = useState(null);
+const ESTADOS = ["pendiente", "entrevista", "contratado", "rechazado"];
 
-
- const empresaId = usuario?.id_empresa;
-
-  console.log("🟦 Usuario recibido en PostulacionesEmpresa:", usuario);
-  console.log("🟩 empresaId detectado:", empresaId);
+const PostulacionesEmpresa = ({ usuario }) => {
+  const [ofertasAgrupadas, setOfertasAgrupadas] = useState([]);
 
   useEffect(() => {
-    if (!empresaId) {
-      console.error("❌ No hay empresaId disponible");
-      return;
-    }
+    fetchPostulaciones();
+  }, []);
 
-    const fetchData = async () => {
-      try {
-        console.log("📌 Cargando postulaciones para empresa", empresaId);
+  const fetchPostulaciones = async () => {
+    try {
+      const res = await axios.get(`/api/postulaciones/empresa/${usuario.id_empresa}`);
 
-        // 1) Ofertas creadas por la empresa
-        const ofertasResp = await axios.get(`/api/ofertas/empresa/${empresaId}`);
-        console.log("📦 Ofertas empresa:", ofertasResp.data);
+      // Agrupación por oferta
+      const agrupadas = res.data.reduce((acc, p) => {
+        const id = p.oferta.id_oferta;
 
-        setOfertasEmpresa(ofertasResp.data);
-        const idsOfertas = ofertasResp.data.map((o) => o.id);
-
-        // 2) Todas las postulaciones
-        const postResp = await axios.get("/api/postulaciones/");
-        console.log("📦 Todas las postulaciones:", postResp.data);
-
-        const filtradas = postResp.data.filter((p) =>
-          idsOfertas.includes(p.id_oferta)
-        );
-        console.log("📨 Postulaciones filtradas:", filtradas);
-
-        setPostulaciones(filtradas);
-
-        // 3) Cargar información de personas
-        const mapaPersonas = {};
-
-        for (const p of filtradas) {
-          if (!mapaPersonas[p.dni]) {
-            try {
-              const personaResp = await axios.get(`/api/personas/${p.dni}`);
-              mapaPersonas[p.dni] = personaResp.data;
-            } catch (e) {
-              console.warn("⚠ No se pudo cargar persona", p.dni);
-            }
-          }
+        if (!acc[id]) {
+          acc[id] = {
+            oferta: p.oferta,
+            postulantes: [],
+            abierta: false,
+          };
         }
 
-        setPersonas(mapaPersonas);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudieron cargar las postulaciones.");
-      }
-    };
+        acc[id].postulantes.push(p);
+        return acc;
+      }, {});
 
-    fetchData();
-  }, [empresaId]);
+      setOfertasAgrupadas(Object.values(agrupadas));
+    } catch (error) {
+      console.error("Error cargando postulaciones empresa:", error);
+    }
+  };
 
-  // Cambiar estado
-  const actualizarEstado = async (dni, id_oferta, estado) => {
+  const actualizarEstado = async (id_postulacion, nuevoEstado) => {
     try {
-      await axios.put(`/api/postulaciones/${dni}/${id_oferta}`, { estado });
-
-      setPostulaciones((prev) =>
-        prev.map((p) =>
-          p.dni === dni && p.id_oferta === id_oferta
-            ? { ...p, estado }
-            : p
-        )
-      );
+      await axios.put(`/api/postulaciones/${id_postulacion}/estado?estado=${nuevoEstado}`);
+      fetchPostulaciones();
     } catch (err) {
-      console.error("❌ Error cambiando estado:", err);
-      alert("No se pudo actualizar el estado.");
+      console.error("Error actualizando estado:", err);
+    }
+  };
+
+  // Función para obtener el color del badge según el estado
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case "pendiente":
+        return "var(--primary-main)";
+      case "entrevista":
+        return "var(--accent-color)";
+      case "contratado":
+        return "#4CAF50";
+      case "rechazado":
+        return "#f44336";
+      default:
+        return "var(--text-secondary)";
     }
   };
 
   return (
-    <div>
-      <h2>📄 Postulaciones Recibidas</h2>
+    <div className="perfil-content">
+      <div className="form-container">
+        <h2 className="form-titulo">Postulaciones Recibidas</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {postulaciones.length === 0 ? (
-        <p>No hay postulaciones.</p>
-      ) : (
-        postulaciones.map((p) => {
-          const postulante = personas[p.dni];
-          const oferta = ofertasEmpresa.find((o) => o.id === p.id_oferta);
-
-          return (
-            <div
-              key={`${p.dni}-${p.id_oferta}`}
-              style={{
-                border: "1px solid #ccc",
-                padding: 15,
-                marginBottom: 10,
-                background: "#f7f7f7",
-                borderRadius: 6,
-              }}
-            >
-              <h3>{oferta?.titulo || "Oferta desconocida"}</h3>
-
-              <p>
-                <strong>Postulante:</strong>{" "}
-                {postulante
-                  ? `${postulante.nombre} ${postulante.apellido}`
-                  : p.dni}
-              </p>
-
-              <p>
-                <strong>Email:</strong>{" "}
-                {postulante?.email || "No disponible"}
-              </p>
-
-              <p>
-                <strong>Estado:</strong> {p.estado}
-              </p>
-
-              <div style={{ marginTop: 10 }}>
-                <button
-                  style={{
-                    background: "#5cb85c",
-                    color: "white",
-                    padding: "8px 12px",
-                    border: "none",
-                    borderRadius: 4,
+        {ofertasAgrupadas.length === 0 ? (
+          <div className="seccion-placeholder">
+            <p>No hay postulaciones recibidas</p>
+          </div>
+        ) : (
+          <div className="formulario">
+            {ofertasAgrupadas.map((grupo, index) => (
+              <div key={index} className="oferta-item">
+                <div
+                  className="card-header"
+                  style={{ 
                     cursor: "pointer",
-                    marginRight: 10,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    padding: '20px',
+                    borderBottom: '1px solid var(--divider-color)'
                   }}
-                  onClick={() =>
-                    actualizarEstado(p.dni, p.id_oferta, "aceptado")
-                  }
+                  onClick={() => {
+                    const copia = [...ofertasAgrupadas];
+                    copia[index].abierta = !copia[index].abierta;
+                    setOfertasAgrupadas(copia);
+                  }}
                 >
-                  Aceptar
-                </button>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ color: 'var(--primary-dark)', margin: '0 0 8px 0' }}>
+                      {grupo.oferta.titulo}
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem' }}>
+                      {grupo.oferta.descripcion}
+                    </p>
+                  </div>
 
-                <button
-                  style={{
-                    background: "#d9534f",
-                    color: "white",
-                    padding: "8px 12px",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    actualizarEstado(p.dni, p.id_oferta, "rechazado")
-                  }
-                >
-                  Rechazar
-                </button>
+                  <div 
+                    className="habilidad-item" 
+                    style={{ 
+                      background: 'var(--primary-main)',
+                      marginLeft: '15px'
+                    }}
+                  >
+                    {grupo.postulantes.length} postulante{grupo.postulantes.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {grupo.abierta && (
+                  <div style={{ padding: '20px' }}>
+                    {grupo.postulantes.map((p) => (
+                      <div
+                        key={p.id_postulacion}
+                        className="oferta-item"
+                        style={{ 
+                          marginBottom: '16px',
+                          background: 'var(--primary-light)'
+                        }}
+                      >
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'flex-start',
+                          marginBottom: '15px'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ color: 'var(--primary-dark)', margin: '0 0 8px 0' }}>
+                              {p.persona.apellido}, {p.persona.nombre}
+                            </h4>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                              <div>DNI: {p.persona.dni}</div>
+                              <div>Email: {p.persona.email}</div>
+                            </div>
+                          </div>
+
+                          <div 
+                            className="habilidad-item"
+                            style={{ 
+                              background: getEstadoColor(p.estado),
+                              marginLeft: '15px'
+                            }}
+                          >
+                            {p.estado}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h5 style={{ 
+                            color: 'var(--text-secondary)', 
+                            margin: '0 0 12px 0',
+                            fontSize: '0.95rem'
+                          }}>
+                            Cambiar estado:
+                          </h5>
+                          <div style={{ 
+                            display: 'flex', 
+                            gap: '8px', 
+                            flexWrap: 'wrap'
+                          }}>
+                            {ESTADOS.map((estado) => (
+                              <button
+                                key={estado}
+                                className={`selector-btn ${p.estado === estado ? 'activo' : ''}`}
+                                onClick={() => actualizarEstado(p.id_postulacion, estado)}
+                                style={{
+                                  padding: '8px 16px',
+                                  fontSize: '0.85rem',
+                                  minWidth: 'auto'
+                                }}
+                              >
+                                {estado}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
 
-export default PostulacionesEmpresa
+export default PostulacionesEmpresa;

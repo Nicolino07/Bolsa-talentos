@@ -36,13 +36,15 @@ function PerfilEmpresa({ usuario, onLogout }) {
           />
         )}
 
+        
+        {seccion === "buscar-talentos" && (
+          <BuscadorDeTalentos />
+        )}
+
         {seccion === "gestionar-postulaciones" && (
           <PostulacionesEmpresa usuario={usuario} />
         )}
 
-        {seccion === "buscar-talentos" && (
-          <BuscadorDeTalentos />
-        )}
 
 
       </div>

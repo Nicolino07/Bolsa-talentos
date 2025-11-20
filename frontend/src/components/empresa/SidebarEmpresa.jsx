@@ -16,7 +16,7 @@ function SidebarEmpresa({ setSeccion, onLogout }) {
         📋 Gestionar Ofertas
       </button>
 
-      <button onClick={() => setSeccion("postulantes")}>Postulantes</button>
+      <button onClick={() => setSeccion("gestionar-postulaciones")}>Postulantes</button>
       <button onClick={() => setSeccion("buscar-talentos")}>Buscar Talentos</button>
      
     </div>

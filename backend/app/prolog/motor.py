@@ -149,3 +149,27 @@ el sistema de matching y recomendaciones inteligentes
                 "dni": dni,
                 "recomendaciones": []
             }
+        
+    @staticmethod
+    def expandir(palabras):
+        """
+        Envía las palabras al servicio Prolog para obtener expansión semántica.
+        Si Prolog no responde o no existe, devuelve las palabras originales.
+        """
+        try:
+            resp = requests.post(
+                f"{PROLOG_URL}/expandir",
+                json={"palabras": palabras},
+                timeout=2
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("expandidas", palabras)
+
+            print("⚠️ Prolog devolvió un código inesperado:", resp.status_code)
+            return palabras
+
+        except Exception as e:
+            print("⚠️ Prolog /expandir no respondió:", str(e))
+            return palabras

@@ -5,6 +5,8 @@
 :- use_module(library(http/http_files)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_multipart_plugin)).
+:- use_module(library(lists)).
+
 
 :- dynamic persona/5.
 :- dynamic persona_actividad/4.
@@ -524,7 +526,7 @@ sincronizar_con_backend_seguro(Relaciones) :-
     relacionales_a_json(Relaciones, JSONRelaciones),
     
     % URL del endpoint
-    BackendURL = 'http://backend:3000/api/relaciones-aprendidas/relaciones-aprendidas/prolog/sincronizar',
+    BackendURL = 'http://backend:3000/api/relaciones-aprendidas/prolog/sincronizar',
     
     % Enviar HTTP POST con manejo seguro
     catch(
@@ -657,4 +659,41 @@ handle_debug_recomendaciones(Request) :-
         habilidades_usuario: Habilidades,
         todas_relaciones: TodasRelaciones,
         relaciones_posibles: RelacionesPosibles
+    }).
+
+% -----------------------------
+% ENDPOINT: EXPANDIR PALABRAS
+% -----------------------------
+:- http_handler(root(expandir), handle_expandir, [method(post)]).
+
+handle_expandir(Request) :-
+    http_read_json_dict(Request, Dict),
+    (   _{palabras: Lista} :< Dict
+    ->  true
+    ;   reply_json_dict(_{status: "error", message: "Falta 'palabras'"}, [status(400)]), fail
+    ),
+
+    % Convertir lista de strings en una sola consulta
+    atomic_list_concat(Lista, ' ', Consulta),
+
+    % Llamar al motor semántico
+    (   catch(buscar_semantica(Consulta, Resultados), _, Resultados = [])
+    ->  true
+    ;   Resultados = []
+    ),
+
+    % Extraer nombres de actividades recomendadas
+    findall(Nombre,
+        member([_, _, Nombre, _], Resultados),
+        ExpandidasEncontradas
+    ),
+
+    % Fusionar lista original + nuevas palabras
+    append(Lista, ExpandidasEncontradas, Mezcla),
+    sort(Mezcla, ExpandidasUnicas),
+
+    reply_json_dict(_{
+        status: "ok",
+        palabras: Lista,
+        expandidas: ExpandidasUnicas
     }).
