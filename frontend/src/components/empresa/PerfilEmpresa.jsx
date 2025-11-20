@@ -10,7 +10,7 @@ import BuscadorDeTalentos from "../BuscadorDeTalentos";
 import "../../styles/FormStyles.css";
 
 
-export default function PerfilEmpresa({ usuario, onLogout }) {
+function PerfilEmpresa({ usuario, onLogout }) {
   const [seccion, setSeccion] = useState("info");
 
   console.log("👤 Usuario en PerfilEmpresa:", usuario); // Para debug
@@ -36,7 +36,7 @@ export default function PerfilEmpresa({ usuario, onLogout }) {
           />
         )}
 
-       {seccion === "gestionar-postulaciones" && (
+        {seccion === "gestionar-postulaciones" && (
           <PostulacionesEmpresa usuario={usuario} />
         )}
 
@@ -49,3 +49,5 @@ export default function PerfilEmpresa({ usuario, onLogout }) {
     </div>
   );
 }
+
+export default PerfilEmpresa

@@ -8,8 +8,8 @@ function PostulacionesEmpresa({ usuario }) {
   const [personas, setPersonas] = useState({});
   const [error, setError] = useState(null);
 
-  // Identificador flexible
-  const empresaId = usuario.id_empresa
+
+ const empresaId = usuario?.id_empresa;
 
   console.log("🟦 Usuario recibido en PostulacionesEmpresa:", usuario);
   console.log("🟩 empresaId detectado:", empresaId);
